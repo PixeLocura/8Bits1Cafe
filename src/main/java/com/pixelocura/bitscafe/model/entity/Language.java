@@ -1,25 +1,24 @@
 package com.pixelocura.bitscafe.model.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.UUID;
 
 @Data
 @Entity
 @Table(name = "languages")
 public class Language {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "UUID")
-    private UUID id;
+    @Size(min = 2, max = 3)
+    @Pattern(regexp = "^[A-Z]{2,3}$")
+    @Column(name = "iso_code", nullable = false)
+    private String isoCode;
 
     @Column(nullable = false)
     private String name;
-
-    @Column(name = "iso_code", nullable = false)
-    private String isoCode;
 
     @Column(name = "creation_date", nullable = false)
     private ZonedDateTime creationDate;

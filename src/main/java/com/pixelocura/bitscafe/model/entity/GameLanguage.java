@@ -22,8 +22,8 @@ public class GameLanguage {
     @Id
     @ManyToOne
     @JoinColumn(
-            name = "language_id",
-            referencedColumnName = "id",
+            name = "language_iso",
+            referencedColumnName = "iso_code",
             foreignKey = @ForeignKey(name = "fk_game_language_language")
     )
     private Language language;
@@ -31,6 +31,6 @@ public class GameLanguage {
     @Data
     public static class GameLanguageId implements Serializable {
         private UUID game;
-        private UUID language;
+        private String language;
     }
 }

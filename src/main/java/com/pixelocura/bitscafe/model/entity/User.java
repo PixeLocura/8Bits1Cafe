@@ -40,8 +40,8 @@ public class User {
 
     @ManyToOne
     @JoinColumn(
-            name = "country_id",
-            referencedColumnName = "id",
+            name = "country_iso",
+            referencedColumnName = "iso_code",
             nullable = false,
             foreignKey = @ForeignKey(name = "fk_user_country")
     )
