@@ -42,14 +42,18 @@ public class UserMapper {
 
         user.setDeveloperProfile(null);
 
-        // Configure ModelMapper to skip the developerProfile field
-        ModelMapper tmpMapper = new ModelMapper();
-        tmpMapper.getConfiguration().setSkipNullEnabled(true);
-        tmpMapper.createTypeMap(UserDTO.class, User.class)
-            .addMappings(mapper -> mapper.skip(User::setDeveloperProfile));
+        // Configure the injected ModelMapper to skip the developerProfile field
+        modelMapper.getConfiguration().setSkipNullEnabled(true);
+
+        // Get or create type map with developer profile skipped
+        var typeMap = modelMapper.getTypeMap(UserDTO.class, User.class);
+        if (typeMap == null) {
+            typeMap = modelMapper.createTypeMap(UserDTO.class, User.class);
+            typeMap.addMappings(mapper -> mapper.skip(User::setDeveloperProfile));
+        }
 
         // Map userDTO to user, skipping developer profile
-        tmpMapper.map(userDTO, user);
+        modelMapper.map(userDTO, user);
 
         // Handle password - temporarily use plain password as hash
         if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
