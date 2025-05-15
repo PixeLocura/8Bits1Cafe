@@ -40,6 +40,17 @@ public class TransactionMapper {
         return dto;
     }
 
-    // Si necesitas transformar de DTO a Entidad, también se puede hacer
-    // (pero puede requerir obtener las entidades User y Game desde DB)
+    public static List<TransactionDTO> toTransactionDTOList(List<Transaction> transactions) {
+        return transactions.stream()
+                .map(TransactionMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public static List<TransactionDetailDTO> toTransactionDetailDTOList(List<TransactionDetail> details) {
+        return details.stream()
+                .map(TransactionMapper::toDetailDTO)
+                .collect(Collectors.toList());
+    }
+
+
 }
