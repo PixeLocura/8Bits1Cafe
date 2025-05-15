@@ -1,0 +1,44 @@
+###
+GET http://localhost:8080/api/v1/transactions
+###
+POST http://localhost:8081/api/v1/transactions
+Content-Type: application/json
+
+{
+  "userId": "22222222-2222-2222-2222-222222222222",
+  "details": [
+
+    {
+      "price": 25.0
+    }
+  ]
+}
+
+###
+GET http://localhost:8080/api/v1/transactions
+###
+
+
+GET http://localhost:8081/api/v1/transactions/be10a759-d060-42a3-9cdb-555c37515200
+### PENDIENTE
+
+<<<<<<< HEAD
+POST http://localhost:8080/api/v1/22222222-2222-2222-2222-222222222222/favorites
+Content-Type: application/json
+
+    {
+      "gameId": "33333333-3333-3333-3333-333333333331"
+    }
+###
+GET http://localhost:8080/api/v1/22222222-2222-2222-2222-222222222222/favorites
+###
+DELETE http://localhost:8080/api/v1/22222222-2222-2222-2222-222222222222/favorites/33333333-3333-3333-3333-333333333331
+###
+=======
+GET http://localhost:8080/api/v1/transactions/user/22222222-2222-2222-2222-222222222222
+###
+
+
+GET http://localhost:8080/api/v1/transactions/be10a759-d060-42a3-9cdb-555c37515200/details
+###
+>>>>>>> d33219e0f64b67f3ea8d48ba6deb6a8cb5cb868e

@@ -47,10 +47,10 @@ public class User {
     )
     private Country country;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(
             name = "developer_profile",
-            referencedColumnName = "id",
+            referencedColumnName = "id", 
             foreignKey = @ForeignKey(name = "fk_user_developer_profile")
     )
     private Developer developerProfile;

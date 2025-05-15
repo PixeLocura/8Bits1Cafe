@@ -1,5 +1,8 @@
 package com.pixelocura.bitscafe.service.impl;
 
+import com.pixelocura.bitscafe.dto.LanguageDTO;
+import com.pixelocura.bitscafe.exception.BadRequestException;
+import com.pixelocura.bitscafe.mapper.LanguageMapper;
 import com.pixelocura.bitscafe.model.entity.Language;
 import com.pixelocura.bitscafe.repository.LanguageRepository;
 import com.pixelocura.bitscafe.service.AdminLanguageService;
@@ -7,49 +10,66 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class AdminLanguageServiceImpl implements AdminLanguageService {
     private final LanguageRepository languageRepository;
+    private final LanguageMapper languageMapper;
 
     @Override
-    public List<Language> findAll() {
-        return languageRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<LanguageDTO> findAll() {
+        return languageRepository.findAll().stream()
+                .map(languageMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Page<Language> paginate(Pageable pageable) {
-        return languageRepository.findAll(pageable);
+    @Transactional(readOnly = true)
+    public Page<LanguageDTO> paginate(Pageable pageable) {
+        return languageRepository.findAll(pageable)
+                .map(languageMapper::toDTO);
     }
 
     @Override
-    public Language create(Language language) {
-        return languageRepository.save(language);
+    @Transactional
+    public LanguageDTO create(LanguageDTO languageDTO) {
+        Language language = languageMapper.toEntity(languageDTO);
+        Language savedLanguage = languageRepository.save(language);
+        return languageMapper.toDTO(savedLanguage);
     }
 
     @Override
-    public Language findByIsoCode(String isoCode) {
-        return languageRepository.findById(isoCode)
-                .orElseThrow(() -> new RuntimeException("Language not found with ISO code: " + isoCode));
+    @Transactional(readOnly = true)
+    public LanguageDTO findByIsoCode(String isoCode) {
+        Language language = languageRepository.findByIsoCode(isoCode)
+                .orElseThrow(()-> new BadRequestException("Language not found with ISO code: " + isoCode));
+        return languageMapper.toDTO(language);
     }
 
     @Override
-    public Language update(String isoCode, Language updatedLanguage) {
-        Language existingLanguage = findByIsoCode(isoCode);
-
-        if (updatedLanguage.getName() != null) {
-            existingLanguage.setName(updatedLanguage.getName());
+    @Transactional
+    public LanguageDTO update(String isoCode, LanguageDTO languageDTO) {
+        Language languageEntity = languageRepository.findByIsoCode(isoCode)
+                .orElseThrow(()-> new BadRequestException("Language not found with ISO code: " + isoCode));
+        if(languageDTO.getName() != null){
+            languageEntity.setName(languageDTO.getName());
         }
-
-        return languageRepository.save(existingLanguage);
+        Language updatedLanguage = languageRepository.save(languageEntity);
+        return languageMapper.toDTO(updatedLanguage);
     }
 
     @Override
+    @Transactional
     public void delete(String isoCode) {
-        Language language = findByIsoCode(isoCode);
-        languageRepository.delete(language);
+        Language languageToDelete = languageRepository.findByIsoCode(isoCode)
+                .orElseThrow(()-> new BadRequestException("Language not found with ISO code: " + isoCode));
+
+        languageRepository.delete(languageToDelete);
     }
 }
