@@ -24,16 +24,28 @@ import java.util.stream.Collectors;
 public class AdminTransactionServiceImpl implements AdminTransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final UserRepository userRepository;
-    private final GameRepository gameRepository;
+    private final TransactionDetailRepository transactionDetailRepository;
+    private UserRepository userRepository; //final? x2
+    private GameRepository gameRepository;
 
     public AdminTransactionServiceImpl(TransactionRepository transactionRepository,
-                                  UserRepository userRepository,
-                                  GameRepository gameRepository) {
+                                       TransactionDetailRepository transactionDetailRepository) {
         this.transactionRepository = transactionRepository;
-        this.userRepository = userRepository;
-        this.gameRepository = gameRepository;
+        this.transactionDetailRepository = transactionDetailRepository;
     }
+
+    @Override
+    public List<TransactionDTO> getTransactionsByUser(UUID userId) {
+        List<Transaction> transactions = transactionRepository.findByUserId(userId);
+        return TransactionMapper.toTransactionDTOList(transactions);
+    }
+
+    @Override
+    public List<TransactionDetailDTO> getTransactionDetails(UUID transactionId) {
+        List<TransactionDetail> details = transactionDetailRepository.findByTransactionId(transactionId);
+        return TransactionMapper.toTransactionDetailDTOList(details);
+    }
+
 
     @Override
     @Transactional
