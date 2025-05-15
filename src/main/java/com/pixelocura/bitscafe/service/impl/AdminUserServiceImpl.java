@@ -41,10 +41,18 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Override
     @Transactional
     public UserDTO create(UserDTO userDTO) {
+        // Check for duplicate username
         userRepository.findByUsername(userDTO.getUsername())
                 .ifPresent(user -> {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "User already exists with username: " + userDTO.getUsername());
+                });
+
+        // Check for duplicate email
+        userRepository.findByEmail(userDTO.getEmail())
+                .ifPresent(user -> {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "User already exists with email: " + userDTO.getEmail());
                 });
 
         User user = userMapper.toEntity(userDTO);
@@ -82,12 +90,28 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Override
     @Transactional
     public UserDTO update(UUID id, UserDTO userDTO) {
-        User user = userRepository.findById(id)
+        User existingUser = userRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "User not found with id: " + id));
 
-        userMapper.updateEntity(userDTO, user);
-        User updatedUser = userRepository.save(user);
+        userRepository.findByUsername(userDTO.getUsername())
+                .ifPresent(user -> {
+                    if (!user.getId().equals(id)) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Username already taken: " + userDTO.getUsername());
+                    }
+                });
+
+        userRepository.findByEmail(userDTO.getEmail())
+                .ifPresent(user -> {
+                    if (!user.getId().equals(id)) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Email already registered: " + userDTO.getEmail());
+                    }
+                });
+
+        userMapper.updateEntity(userDTO, existingUser);
+        User updatedUser = userRepository.save(existingUser);
         return userMapper.toDTO(updatedUser);
     }
 
