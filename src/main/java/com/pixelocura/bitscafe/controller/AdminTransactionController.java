@@ -1,4 +1,4 @@
-// AdminTransactionController.java
+
 package com.pixelocura.bitscafe.controller;
 
 import com.pixelocura.bitscafe.dto.TransactionDTO;
@@ -31,12 +31,14 @@ public class AdminTransactionController {
 
     @PostMapping
     public ResponseEntity<TransactionDTO> createTransaction(@RequestBody TransactionDTO transactionDTO) {
+
         TransactionDTO created = adminTransactionService.createTransaction(transactionDTO);
         return ResponseEntity.ok(created);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TransactionDTO> getTransaction(@PathVariable UUID id) {
+
         TransactionDTO transactionDTO = adminTransactionService.getTransactionById(id);
         return ResponseEntity.ok(transactionDTO);
     }
