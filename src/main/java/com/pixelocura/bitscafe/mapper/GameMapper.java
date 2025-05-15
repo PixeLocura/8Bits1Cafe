@@ -2,6 +2,7 @@ package com.pixelocura.bitscafe.mapper;
 import com.pixelocura.bitscafe.dto.GameDTO;
 import com.pixelocura.bitscafe.model.entity.Developer;
 import com.pixelocura.bitscafe.model.entity.Game;
+import com.pixelocura.bitscafe.repository.DeveloperRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +15,13 @@ import java.util.stream.Collectors;
 @Component
 public class GameMapper {
 
-    public static GameDTO toDTO(Game game) {
+    private final DeveloperRepository developerRepository;
+
+    public GameMapper(DeveloperRepository developerRepository) {
+        this.developerRepository = developerRepository;
+    }
+
+    public GameDTO toDTO(Game game) {
         if (game == null) return null;
 
         GameDTO dto = new GameDTO();
@@ -41,7 +48,7 @@ public class GameMapper {
         return dto;
     }
 
-    public static Game toEntity(GameDTO dto) {
+    public Game toEntity(GameDTO dto) {
         if (dto == null) return null;
 
         Game game = new Game();
@@ -62,15 +69,14 @@ public class GameMapper {
             game.setUpdateDate(game.getUpdateDate());
         }
 
+        Developer developer = developerRepository.findById(dto.getDeveloper_id())
+                .orElseThrow(() -> new RuntimeException("Developer not found with id: " + dto.getDeveloper_id()));
+        game.setDeveloper(developer);
+
 
         return game;
     }
 
-    public static List<GameDTO> toDTOList(List<Game> games) {
-        return games.stream()
-                .map(GameMapper::toDTO)
-                .collect(Collectors.toList());
-    }
 }
 
 

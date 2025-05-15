@@ -5,6 +5,8 @@ import com.pixelocura.bitscafe.model.entity.Game;
 import com.pixelocura.bitscafe.service.AdminGameService;
 import com.pixelocura.bitscafe.repository.GameRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,32 +21,37 @@ import java.util.stream.Collectors;
 public class AdminGameServiceImpl implements AdminGameService {
     private final GameRepository gameRepository;
     private final GameMapper gameMapper;
+    private static final Logger log = LoggerFactory.getLogger(AdminGameServiceImpl.class);
 
     @Override
     public List<GameDTO> findAll() {
-        return gameRepository.findAll().stream().map(GameMapper::toDTO).collect(Collectors.toList());
+        return gameRepository.findAll().stream().map(gameMapper::toDTO).collect(Collectors.toList());
     }
 
     @Override
     public Page<GameDTO> paginate(Pageable pageable) {
 
-        return gameRepository.findAll(pageable).map(GameMapper::toDTO);
+        return gameRepository.findAll(pageable).map(gameMapper::toDTO);
     }
 
     @Override
     public GameDTO create(GameDTO game) {
-        Game gameEntity = GameMapper.toEntity(game);
+        log.debug("Incoming DTO → title={}, coverUrl={}", game.getTitle(), game.getCoverUrl());
+        Game gameEntity = gameMapper.toEntity(game);
+
+
         if (gameRepository.existsByTitle(gameEntity.getTitle())) {
             throw new IllegalArgumentException("Ya existe un juego con ese título.");
         }
+
         Game savedGame = gameRepository.save(gameEntity);
-        return GameMapper.toDTO(savedGame);
+        return gameMapper.toDTO(savedGame);
     }
 
     @Override
     public GameDTO findById(UUID id) {
         Game game = gameRepository.findById(id).orElse(null);
-        return GameMapper.toDTO(game);
+        return gameMapper.toDTO(game);
     }
 
     @Override
@@ -59,7 +66,7 @@ public class AdminGameServiceImpl implements AdminGameService {
         existingGame.setReleaseDate(updatedGame.getReleaseDate());
 
         Game savedGame = gameRepository.save(existingGame);
-        return GameMapper.toDTO(savedGame);
+        return gameMapper.toDTO(savedGame);
 
     }
 
