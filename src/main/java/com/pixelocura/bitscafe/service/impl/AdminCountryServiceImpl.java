@@ -1,5 +1,7 @@
 package com.pixelocura.bitscafe.service.impl;
 
+import com.pixelocura.bitscafe.dto.CountryDTO;
+import com.pixelocura.bitscafe.mapper.CountryMapper;
 import com.pixelocura.bitscafe.model.entity.Country;
 import com.pixelocura.bitscafe.repository.CountryRepository;
 import com.pixelocura.bitscafe.service.AdminCountryService;
@@ -7,53 +9,71 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class AdminCountryServiceImpl implements AdminCountryService {
     private final CountryRepository countryRepository;
+    private final CountryMapper countryMapper;
 
     @Override
-    public List<Country> findAll() {
-        return countryRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<CountryDTO> findAll() {
+        return countryRepository.findAll().stream()
+                .map(countryMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Page<Country> paginate(Pageable pageable) {
-        return countryRepository.findAll(pageable);
+    @Transactional(readOnly = true)
+    public Page<CountryDTO> paginate(Pageable pageable) {
+        return countryRepository.findAll(pageable)
+                .map(countryMapper::toDTO);
     }
 
     @Override
-    public Country create(Country country) {
-        return countryRepository.save(country);
+    @Transactional
+    public CountryDTO create(CountryDTO countryDTO) {
+        Country country = countryMapper.toEntity(countryDTO);
+        Country savedCountry = countryRepository.save(country);
+        return countryMapper.toDTO(savedCountry);
     }
 
     @Override
-    public Country findByIsoCode(String isoCode) {
-        return countryRepository.findById(isoCode)
+    @Transactional(readOnly = true)
+    public CountryDTO findByIsoCode(String isoCode) {
+        Country country = countryRepository.findByIsoCode(isoCode)
                 .orElseThrow(() -> new RuntimeException("Country not found with ISO code: " + isoCode));
+        return countryMapper.toDTO(country);
     }
 
     @Override
-    public Country update(String isoCode, Country updatedCountry) {
-        Country existingCountry = findByIsoCode(isoCode);
+    @Transactional
+    public CountryDTO update(String isoCode, CountryDTO countryDTO) {
+        Country countryEntity = countryRepository.findByIsoCode(isoCode)
+                .orElseThrow(() -> new RuntimeException("Country not found with ISO code: " + isoCode));
 
-        if (updatedCountry.getName() != null) {
-            existingCountry.setName(updatedCountry.getName());
+        if (countryDTO.getName() != null) {
+            countryEntity.setName(countryDTO.getName());
         }
-        if (updatedCountry.getFlagUrl() != null) {
-            existingCountry.setFlagUrl(updatedCountry.getFlagUrl());
+        if (countryDTO.getFlagUrl() != null) {
+            countryEntity.setFlagUrl(countryDTO.getFlagUrl());
         }
 
-        // Note: updateDate is handled by @PreUpdate
-        return countryRepository.save(existingCountry);
+        Country updatedCountry = countryRepository.save(countryEntity);
+        return countryMapper.toDTO(updatedCountry);
     }
 
     @Override
+    @Transactional
     public void delete(String isoCode) {
-        Country country = findByIsoCode(isoCode);
-        countryRepository.delete(country);
+        Country countryToDelete = countryRepository.findByIsoCode(isoCode)
+                .orElseThrow(() -> new RuntimeException("Country not found with ISO code: " + isoCode));
+
+        countryRepository.delete(countryToDelete);
     }
 }
