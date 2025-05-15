@@ -1,6 +1,6 @@
 package com.pixelocura.bitscafe.controller;
 
-import com.pixelocura.bitscafe.model.entity.Category;
+import com.pixelocura.bitscafe.dto.CategoryDTO;
 import com.pixelocura.bitscafe.service.AdminCategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,34 +19,34 @@ public class AdminCategoryController {
     private final AdminCategoryService adminCategoryService;
 
     @GetMapping
-    public ResponseEntity<List<Category>> getAllCategories() {
+    public ResponseEntity<List<CategoryDTO>> getAll() {
         return ResponseEntity.ok(adminCategoryService.findAll());
     }
 
     @GetMapping("/paginated")
-    public ResponseEntity<Page<Category>> getAllCategoriesPaginated(Pageable pageable) {
+    public ResponseEntity<Page<CategoryDTO>> getAllPaginated(Pageable pageable) {
         return ResponseEntity.ok(adminCategoryService.paginate(pageable));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Category> getCategoryById(@PathVariable UUID id) {
+    public ResponseEntity<CategoryDTO> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(adminCategoryService.findById(id));
     }
 
     @PostMapping
-    public ResponseEntity<Category> createCategory(@RequestBody Category category) {
-        return ResponseEntity.ok(adminCategoryService.create(category));
+    public ResponseEntity<CategoryDTO> create(@RequestBody CategoryDTO categoryDTO) {
+        return ResponseEntity.ok(adminCategoryService.create(categoryDTO));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(
+    public ResponseEntity<CategoryDTO> update(
             @PathVariable UUID id,
-            @RequestBody Category category) {
-        return ResponseEntity.ok(adminCategoryService.update(id, category));
+            @RequestBody CategoryDTO categoryDTO) {
+        return ResponseEntity.ok(adminCategoryService.update(id, categoryDTO));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCategory(@PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
         adminCategoryService.delete(id);
         return ResponseEntity.noContent().build();
     }
