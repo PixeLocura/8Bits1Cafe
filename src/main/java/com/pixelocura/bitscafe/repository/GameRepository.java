@@ -7,4 +7,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface GameRepository extends JpaRepository<Game, UUID> {
+    boolean existsByTitle(String title);
+
 }
