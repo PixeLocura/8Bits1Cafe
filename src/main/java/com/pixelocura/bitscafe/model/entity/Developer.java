@@ -14,6 +14,9 @@ public class Developer {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "UUID")
     private UUID id;
+    
+    @OneToOne(mappedBy = "developerProfile")
+    private User user;
 
     @Column(nullable = false)
     private String name;

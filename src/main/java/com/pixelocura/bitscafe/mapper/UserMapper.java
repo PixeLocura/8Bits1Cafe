@@ -37,8 +37,21 @@ public class UserMapper {
     }
 
     public void updateEntity(UserDTO userDTO, User user) {
+        // Store values that should not be overwritten by ModelMapper
         String existingPasswordHash = user.getPasswordHash();
 
+        user.setDeveloperProfile(null);
+
+        // Get or create type map with developer profile skipped and skipNullEnabled
+        var typeMap = modelMapper.getTypeMap(UserDTO.class, User.class);
+        if (typeMap == null) {
+            typeMap = modelMapper.createTypeMap(UserDTO.class, User.class);
+            typeMap.addMappings(mapper -> mapper.skip(User::setDeveloperProfile));
+        }
+        typeMap.setPropertyCondition(context -> context.getSource() != null);
+
+
+        // Map userDTO to user, skipping developer profile
         modelMapper.map(userDTO, user);
 
         // Handle password - temporarily use plain password as hash
@@ -46,12 +59,6 @@ public class UserMapper {
             user.setPasswordHash(userDTO.getPassword());
         } else {
             user.setPasswordHash(existingPasswordHash);
-        }
-
-        if (userDTO.getDeveloperProfileId() != null) {
-            Developer developer = developerRepository.findById(userDTO.getDeveloperProfileId())
-                .orElseThrow(() -> new RuntimeException("Developer not found with id: " + userDTO.getDeveloperProfileId()));
-            user.setDeveloperProfile(developer);
         }
     }
 }

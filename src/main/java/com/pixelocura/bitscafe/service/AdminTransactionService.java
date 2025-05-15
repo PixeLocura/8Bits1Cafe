@@ -1,16 +1,16 @@
+// TransactionService.java
 package com.pixelocura.bitscafe.service;
 
-import com.pixelocura.bitscafe.model.entity.Transaction;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.pixelocura.bitscafe.dto.TransactionDTO;
+import com.pixelocura.bitscafe.dto.TransactionDetailDTO;
+
 import java.util.List;
 import java.util.UUID;
 
 public interface AdminTransactionService {
-    List<Transaction> findAll();
-    Page<Transaction> paginate(Pageable pageable);
-    Transaction create(Transaction transaction);
-    Transaction findById(UUID id);
-    Transaction update(UUID id, Transaction updatedTransaction);
-    void delete(UUID id);
+    List<TransactionDTO> getTransactionsByUser(UUID userId);
+    List<TransactionDetailDTO> getTransactionDetails(UUID transactionId);
+    TransactionDTO createTransaction(TransactionDTO transactionDTO);
+    TransactionDTO getTransactionById(UUID id);
+    List<TransactionDTO> getAllTransactions();
 }

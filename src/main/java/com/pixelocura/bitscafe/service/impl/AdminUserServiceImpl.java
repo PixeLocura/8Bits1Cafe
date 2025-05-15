@@ -110,8 +110,18 @@ public class AdminUserServiceImpl implements AdminUserService {
                     }
                 });
 
+        UUID currentDeveloperProfileId = existingUser.getDeveloperProfile() != null ?
+                                         existingUser.getDeveloperProfile().getId() : null;
+
         userMapper.updateEntity(userDTO, existingUser);
-        User updatedUser = userRepository.save(existingUser);
+
+        if (userDTO.getDeveloperProfileId() == null) {
+            userRepository.removeDeveloperProfile(id);
+        } else if (!userDTO.getDeveloperProfileId().equals(currentDeveloperProfileId)) {
+            userRepository.updateDeveloperProfile(id, userDTO.getDeveloperProfileId());
+        }
+
+        User updatedUser = userRepository.findById(id).orElseThrow();
         return userMapper.toDTO(updatedUser);
     }
 
