@@ -37,21 +37,25 @@ public class UserMapper {
     }
 
     public void updateEntity(UserDTO userDTO, User user) {
+        // Store values that should not be overwritten by ModelMapper
         String existingPasswordHash = user.getPasswordHash();
 
-        modelMapper.map(userDTO, user);
+        user.setDeveloperProfile(null);
+
+        // Configure ModelMapper to skip the developerProfile field
+        ModelMapper tmpMapper = new ModelMapper();
+        tmpMapper.getConfiguration().setSkipNullEnabled(true);
+        tmpMapper.createTypeMap(UserDTO.class, User.class)
+            .addMappings(mapper -> mapper.skip(User::setDeveloperProfile));
+
+        // Map userDTO to user, skipping developer profile
+        tmpMapper.map(userDTO, user);
 
         // Handle password - temporarily use plain password as hash
         if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
             user.setPasswordHash(userDTO.getPassword());
         } else {
             user.setPasswordHash(existingPasswordHash);
-        }
-
-        if (userDTO.getDeveloperProfileId() != null) {
-            Developer developer = developerRepository.findById(userDTO.getDeveloperProfileId())
-                .orElseThrow(() -> new RuntimeException("Developer not found with id: " + userDTO.getDeveloperProfileId()));
-            user.setDeveloperProfile(developer);
         }
     }
 }
