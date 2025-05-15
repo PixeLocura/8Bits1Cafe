@@ -31,17 +31,11 @@ public class GameMapper {
         dto.setPrice(game.getPrice());
         dto.setCoverUrl(game.getCoverUrl());
 
-        if (game.getReleaseDate() == null) {
-            dto.setReleaseDate(ZonedDateTime.now(ZoneOffset.UTC));
-        } else {
-            dto.setReleaseDate(game.getReleaseDate());
-        }
+        dto.setCreationDate(game.getCreationDate());
 
-        if (game.getCreationDate() == null) {
-            dto.setCreationDate(ZonedDateTime.now(ZoneOffset.UTC));
-        } else {
-            dto.setCreationDate(game.getCreationDate());
-        }
+        dto.setReleaseDate(game.getReleaseDate());
+
+        dto.setDeveloper_id(game.getDeveloper().getId());
 
         dto.setUpdateDate(game.getUpdateDate());
 
