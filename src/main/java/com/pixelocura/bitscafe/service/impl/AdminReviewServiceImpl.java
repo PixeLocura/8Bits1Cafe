@@ -1,46 +1,132 @@
 package com.pixelocura.bitscafe.service.impl;
 
+import com.pixelocura.bitscafe.dto.ReviewDTO;
+import com.pixelocura.bitscafe.mapper.ReviewMapper;
 import com.pixelocura.bitscafe.model.entity.Game;
 import com.pixelocura.bitscafe.model.entity.Review;
 import com.pixelocura.bitscafe.model.entity.User;
+import com.pixelocura.bitscafe.repository.GameRepository;
+import com.pixelocura.bitscafe.repository.ReviewRepository;
+import com.pixelocura.bitscafe.repository.UserRepository;
 import com.pixelocura.bitscafe.service.AdminReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class AdminReviewServiceImpl implements AdminReviewService {
+    private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
+    private final GameRepository gameRepository;
+    private final ReviewMapper reviewMapper;
+
     @Override
-    public List<Review> findAll() {
-        return List.of();
+    @Transactional(readOnly = true)
+    public List<ReviewDTO> findAll() {
+        return reviewRepository.findAll().stream()
+                .map(reviewMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Page<Review> paginate(Pageable pageable) {
-        return null;
+    @Transactional(readOnly = true)
+    public Page<ReviewDTO> paginate(Pageable pageable) {
+        return reviewRepository.findAll(pageable)
+                .map(reviewMapper::toDTO);
     }
 
     @Override
-    public Review create(Review review) {
-        return null;
+    @Transactional
+    public ReviewDTO create(ReviewDTO reviewDTO) {
+        User user = userRepository.findById(reviewDTO.getUserId())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + reviewDTO.getUserId()));
+
+        Game game = gameRepository.findById(reviewDTO.getGameId())
+                .orElseThrow(() -> new RuntimeException("Juego no encontrado con ID: " + reviewDTO.getGameId()));
+
+        // Verificar si ya existe una reseña para este usuario y juego
+        if (reviewRepository.findByUser(user).stream()
+                .anyMatch(r -> r.getGame().getId().equals(game.getId()))) {
+            throw new RuntimeException("El usuario ya tiene una reseña para este juego");
+        }
+
+        Review review = new Review();
+        review.setUser(user);
+        review.setGame(game);
+        review.setComment(reviewDTO.getComment());
+
+        Review savedReview = reviewRepository.save(review);
+        return reviewMapper.toDTO(savedReview);
     }
 
     @Override
-    public Review findById(User user, Game game) {
-        return null;
+    @Transactional(readOnly = true)
+    public ReviewDTO findById(User user, Game game) {
+        Optional<Review> review = reviewRepository.findByUser(user).stream()
+                .filter(r -> r.getGame().getId().equals(game.getId()))
+                .findFirst();
+
+        return review.map(reviewMapper::toDTO)
+                .orElseThrow(() -> new RuntimeException(
+                        "Reseña no encontrada para usuario ID: " + user.getId() +
+                                " y juego ID: " + game.getId()));
     }
 
     @Override
-    public Review update(User user, Game game, Review updatedReview) {
-        return null;
+    @Transactional
+    public ReviewDTO update(User user, Game game, ReviewDTO reviewDTO) {
+        Review existingReview = reviewRepository.findByUser(user).stream()
+                .filter(r -> r.getGame().getId().equals(game.getId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "Reseña no encontrada para usuario ID: " + user.getId() +
+                                " y juego ID: " + game.getId()));
+
+
+        existingReview.setComment(reviewDTO.getComment());
+
+        Review updatedReview = reviewRepository.save(existingReview);
+        return reviewMapper.toDTO(updatedReview);
     }
 
     @Override
+    @Transactional
     public void delete(User user, Game game) {
+        Review review = reviewRepository.findByUser(user).stream()
+                .filter(r -> r.getGame().getId().equals(game.getId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(
+                        "Reseña no encontrada para usuario ID: " + user.getId() +
+                                " y juego ID: " + game.getId()));
+        reviewRepository.delete(review);
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReviewDTO> findByUser(User user) {
+        return reviewRepository.findByUser(user).stream()
+                .map(reviewMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReviewDTO> findByGame(Game game) {
+        return reviewRepository.findByGame(game).stream()
+                .map(reviewMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Double getAverageRatingByGame(Game game) {
+        return reviewRepository.getAverageRatingByGame(game);
     }
 }
