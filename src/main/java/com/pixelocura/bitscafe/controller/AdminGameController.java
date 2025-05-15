@@ -1,5 +1,6 @@
 package com.pixelocura.bitscafe.controller;
 
+import com.pixelocura.bitscafe.dto.GameDTO;
 import com.pixelocura.bitscafe.model.entity.Game;
 import com.pixelocura.bitscafe.service.AdminGameService;
 import lombok.RequiredArgsConstructor;
@@ -20,32 +21,32 @@ public class AdminGameController {
     private final AdminGameService adminGameService;
 
     @GetMapping
-    public ResponseEntity<List<Game>> list() {
-        List<Game> games = adminGameService.findAll();
+    public ResponseEntity<List<GameDTO>> list() {
+        List<GameDTO> games = adminGameService.findAll();
         return ResponseEntity.ok(games);
     }
 
     @GetMapping("/page")
-    public ResponseEntity<Page<Game>> paginate(@PageableDefault(size = 5, sort = "title") Pageable pageable) {
-        Page<Game> games = adminGameService.paginate(pageable);
+    public ResponseEntity<Page<GameDTO>> paginate(@PageableDefault(size = 5, sort = "title") Pageable pageable) {
+        Page<GameDTO> games = adminGameService.paginate(pageable);
         return ResponseEntity.ok(games);
     }
 
     @PostMapping
-    public ResponseEntity<Game> create(@RequestBody Game game) {
-        Game createdGame = adminGameService.create(game);
+    public ResponseEntity<GameDTO> create(@RequestBody GameDTO gameDTO) {
+        GameDTO createdGame = adminGameService.create(gameDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGame);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Game> getById(@PathVariable UUID id) {
-        Game game = adminGameService.findById(id);
+    public ResponseEntity<GameDTO> getById(@PathVariable UUID id) {
+        GameDTO game = adminGameService.findById(id);
         return ResponseEntity.ok(game);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Game> update(@PathVariable UUID id, @RequestBody Game game) {
-        Game updatedGame = adminGameService.update(id, game);
+    public ResponseEntity<GameDTO> update(@PathVariable UUID id, @RequestBody GameDTO game) {
+        GameDTO updatedGame = adminGameService.update(id, game);
         return ResponseEntity.ok(updatedGame);
     }
 
