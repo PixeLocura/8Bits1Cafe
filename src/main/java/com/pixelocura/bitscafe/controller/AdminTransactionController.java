@@ -11,11 +11,11 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/transactions")
-public class TransactionController {
+public class AdminTransactionController {
 
     private final AdminTransactionService transactionService;
 
-    public TransactionController(AdminTransactionService transactionService) {
+    public AdminTransactionController(AdminTransactionService transactionService) {
         this.transactionService = transactionService;
     }
 
