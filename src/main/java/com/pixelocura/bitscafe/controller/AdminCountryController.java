@@ -1,6 +1,6 @@
 package com.pixelocura.bitscafe.controller;
 
-import com.pixelocura.bitscafe.model.entity.Country;
+import com.pixelocura.bitscafe.dto.CountryDTO;
 import com.pixelocura.bitscafe.service.AdminCountryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,8 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.util.List;
-import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
@@ -20,32 +20,32 @@ public class AdminCountryController {
     private final AdminCountryService adminCountryService;
 
     @GetMapping
-    public ResponseEntity<List<Country>> list() {
-        List<Country> countries = adminCountryService.findAll();
+    public ResponseEntity<List<CountryDTO>> list() {
+        List<CountryDTO> countries = adminCountryService.findAll();
         return ResponseEntity.ok(countries);
     }
 
     @GetMapping("/page")
-    public ResponseEntity<Page<Country>> paginate(@PageableDefault(size = 5, sort = "name") Pageable pageable) {
-        Page<Country> countries = adminCountryService.paginate(pageable);
+    public ResponseEntity<Page<CountryDTO>> paginate(@PageableDefault(size = 5, sort = "name") Pageable pageable) {
+        Page<CountryDTO> countries = adminCountryService.paginate(pageable);
         return ResponseEntity.ok(countries);
     }
 
     @PostMapping
-    public ResponseEntity<Country> create(@RequestBody Country country) {
-        Country createdCountry = adminCountryService.create(country);
+    public ResponseEntity<CountryDTO> create(@Valid @RequestBody CountryDTO countryDTO) {
+        CountryDTO createdCountry = adminCountryService.create(countryDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCountry);
     }
 
     @GetMapping("/{isoCode}")
-    public ResponseEntity<Country> getByIsoCode(@PathVariable String isoCode) {
-        Country country = adminCountryService.findByIsoCode(isoCode);
+    public ResponseEntity<CountryDTO> getByIsoCode(@PathVariable String isoCode) {
+        CountryDTO country = adminCountryService.findByIsoCode(isoCode);
         return ResponseEntity.ok(country);
     }
 
     @PutMapping("/{isoCode}")
-    public ResponseEntity<Country> update(@PathVariable String isoCode, @RequestBody Country country) {
-        Country updatedCountry = adminCountryService.update(isoCode, country);
+    public ResponseEntity<CountryDTO> update(@PathVariable String isoCode, @Valid @RequestBody CountryDTO countryDTO) {
+        CountryDTO updatedCountry = adminCountryService.update(isoCode, countryDTO);
         return ResponseEntity.ok(updatedCountry);
     }
 
