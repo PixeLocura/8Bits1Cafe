@@ -5,8 +5,6 @@ import com.pixelocura.bitscafe.model.entity.Game;
 import com.pixelocura.bitscafe.model.entity.User;
 import com.pixelocura.bitscafe.service.AdminReviewService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -19,6 +17,10 @@ public class AdminReviewController {
 
     private final AdminReviewService adminReviewService;
 
+    @GetMapping
+    public ResponseEntity<List<ReviewDTO>> getAllReviews() {
+        return ResponseEntity.ok(adminReviewService.findAll());
+    }
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<ReviewDTO>> getByUser(@PathVariable UUID userId) {
         User user = new User(); user.setId(userId);
@@ -61,4 +63,6 @@ public class AdminReviewController {
         adminReviewService.delete(user, game);
         return ResponseEntity.noContent().build();
     }
+
+
 }

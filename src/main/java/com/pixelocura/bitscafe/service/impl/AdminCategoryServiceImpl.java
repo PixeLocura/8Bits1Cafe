@@ -32,7 +32,6 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
                 .map(categoryMapper::toDTO)
                 .collect(Collectors.toList());
     }
-
     @Override
     @Transactional(readOnly = true)
     public Page<CategoryDTO> paginate(Pageable pageable) {

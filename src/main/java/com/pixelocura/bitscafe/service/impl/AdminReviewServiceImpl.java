@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -51,17 +50,12 @@ public class AdminReviewServiceImpl implements AdminReviewService {
         Game game = gameRepository.findById(reviewDTO.getGameId())
                 .orElseThrow(() -> new RuntimeException("Juego no encontrado con ID: " + reviewDTO.getGameId()));
 
-        // Verificar si ya existe una reseña para este usuario y juego
-        if (reviewRepository.findByUser(user).stream()
-                .anyMatch(r -> r.getGame().getId().equals(game.getId()))) {
+        // Validar reseña única
+        if (reviewRepository.existsByUserAndGame(user, game)) {
             throw new RuntimeException("El usuario ya tiene una reseña para este juego");
         }
 
-        Review review = new Review();
-        review.setUser(user);
-        review.setGame(game);
-        review.setComment(reviewDTO.getComment());
-
+        Review review = reviewMapper.toEntity(reviewDTO, user, game);
         Review savedReview = reviewRepository.save(review);
         return reviewMapper.toDTO(savedReview);
     }
@@ -69,27 +63,18 @@ public class AdminReviewServiceImpl implements AdminReviewService {
     @Override
     @Transactional(readOnly = true)
     public ReviewDTO findById(User user, Game game) {
-        Optional<Review> review = reviewRepository.findByUser(user).stream()
-                .filter(r -> r.getGame().getId().equals(game.getId()))
-                .findFirst();
-
-        return review.map(reviewMapper::toDTO)
-                .orElseThrow(() -> new RuntimeException(
-                        "Reseña no encontrada para usuario ID: " + user.getId() +
-                                " y juego ID: " + game.getId()));
+        Review review = reviewRepository.findByUserAndGame(user, game)
+                .orElseThrow(() -> new RuntimeException("Reseña no encontrada"));
+        return reviewMapper.toDTO(review);
     }
 
     @Override
     @Transactional
     public ReviewDTO update(User user, Game game, ReviewDTO reviewDTO) {
-        Review existingReview = reviewRepository.findByUser(user).stream()
-                .filter(r -> r.getGame().getId().equals(game.getId()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException(
-                        "Reseña no encontrada para usuario ID: " + user.getId() +
-                                " y juego ID: " + game.getId()));
+        Review existingReview = reviewRepository.findByUserAndGame(user, game)
+                .orElseThrow(() -> new RuntimeException("Reseña no encontrada"));
 
-
+        existingReview.setRating(reviewDTO.getRating());
         existingReview.setComment(reviewDTO.getComment());
 
         Review updatedReview = reviewRepository.save(existingReview);
@@ -99,15 +84,12 @@ public class AdminReviewServiceImpl implements AdminReviewService {
     @Override
     @Transactional
     public void delete(User user, Game game) {
-        Review review = reviewRepository.findByUser(user).stream()
-                .filter(r -> r.getGame().getId().equals(game.getId()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException(
-                        "Reseña no encontrada para usuario ID: " + user.getId() +
-                                " y juego ID: " + game.getId()));
+        Review review = reviewRepository.findByUserAndGame(user, game)
+                .orElseThrow(() -> new RuntimeException("Reseña no encontrada"));
         reviewRepository.delete(review);
     }
 
+    // ---- Métodos adicionales ----
     @Override
     @Transactional(readOnly = true)
     public List<ReviewDTO> findByUser(User user) {
