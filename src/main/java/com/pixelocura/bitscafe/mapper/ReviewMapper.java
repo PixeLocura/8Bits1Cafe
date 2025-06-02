@@ -4,11 +4,9 @@ import com.pixelocura.bitscafe.dto.ReviewDTO;
 import com.pixelocura.bitscafe.model.entity.Game;
 import com.pixelocura.bitscafe.model.entity.Review;
 import com.pixelocura.bitscafe.model.entity.User;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class ReviewMapper {
     public ReviewDTO toDTO(Review review) {
         ReviewDTO dto = new ReviewDTO();
@@ -16,6 +14,13 @@ public class ReviewMapper {
         dto.setGameId(review.getGame().getId());
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
+
+        // Campos extras para mostrar en la respuesta
+        dto.setUserName(review.getUser().getUsername());  // o el campo que uses
+        dto.setGameTitle(review.getGame().getTitle());
+        dto.setCreatedAt(review.getCreationDate());
+        dto.setUpdatedAt(review.getUpdateDate());
+
         return dto;
     }
 
