@@ -40,7 +40,6 @@ public class GameMapper {
         dto.setDeveloper_id(game.getDeveloper().getId());
         dto.setUpdateDate(game.getUpdateDate());
 
-        // Get the platforms for this game
         List<Platform> platforms = gamePlatformRepository.findByGameId(game.getId())
                 .stream()
                 .map(GamePlatform::getPlatform)
@@ -80,22 +79,24 @@ public class GameMapper {
     }
 
     public void savePlatformsForGame(Game game, List<Platform> platforms) {
-        if (platforms == null || platforms.isEmpty()) {
+        if (platforms == null) {
             return;
         }
 
         List<GamePlatform> existingPlatforms = gamePlatformRepository.findByGameId(game.getId());
         gamePlatformRepository.deleteAll(existingPlatforms);
 
-        List<GamePlatform> gamePlatforms = platforms.stream()
-                .map(platform -> {
-                    GamePlatform gamePlatform = new GamePlatform();
-                    gamePlatform.setGame(game);
-                    gamePlatform.setPlatform(platform);
-                    return gamePlatform;
-                })
-                .collect(Collectors.toList());
+        if (!platforms.isEmpty()) {
+            List<GamePlatform> gamePlatforms = platforms.stream()
+                    .map(platform -> {
+                        GamePlatform gamePlatform = new GamePlatform();
+                        gamePlatform.setGame(game);
+                        gamePlatform.setPlatform(platform);
+                        return gamePlatform;
+                    })
+                    .collect(Collectors.toList());
 
-        gamePlatformRepository.saveAll(gamePlatforms);
+            gamePlatformRepository.saveAll(gamePlatforms);
+        }
     }
 }
