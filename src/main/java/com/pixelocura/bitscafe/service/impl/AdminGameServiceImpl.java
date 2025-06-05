@@ -83,7 +83,7 @@ public class AdminGameServiceImpl implements AdminGameService {
         if (updatedGame.getCategories() != null) {
             gameMapper.saveCategoriesForGame(savedGame, updatedGame.getCategories());
         }
-        
+
         return gameMapper.toDTO(savedGame);
     }
 
