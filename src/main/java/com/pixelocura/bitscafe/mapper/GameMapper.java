@@ -3,9 +3,12 @@ package com.pixelocura.bitscafe.mapper;
 import com.pixelocura.bitscafe.dto.GameDTO;
 import com.pixelocura.bitscafe.model.entity.Developer;
 import com.pixelocura.bitscafe.model.entity.Game;
+import com.pixelocura.bitscafe.model.entity.GameCategory;
 import com.pixelocura.bitscafe.model.entity.GamePlatform;
+import com.pixelocura.bitscafe.model.enums.Category;
 import com.pixelocura.bitscafe.model.enums.Platform;
 import com.pixelocura.bitscafe.repository.DeveloperRepository;
+import com.pixelocura.bitscafe.repository.GameCategoryRepository;
 import com.pixelocura.bitscafe.repository.GamePlatformRepository;
 import org.springframework.stereotype.Component;
 
@@ -19,10 +22,14 @@ public class GameMapper {
 
     private final DeveloperRepository developerRepository;
     private final GamePlatformRepository gamePlatformRepository;
+    private final GameCategoryRepository gameCategoryRepository;
 
-    public GameMapper(DeveloperRepository developerRepository, GamePlatformRepository gamePlatformRepository) {
+    public GameMapper(DeveloperRepository developerRepository,
+            GamePlatformRepository gamePlatformRepository,
+            GameCategoryRepository gameCategoryRepository) {
         this.developerRepository = developerRepository;
         this.gamePlatformRepository = gamePlatformRepository;
+        this.gameCategoryRepository = gameCategoryRepository;
     }
 
     public GameDTO toDTO(Game game) {
@@ -46,6 +53,13 @@ public class GameMapper {
                 .collect(Collectors.toList());
 
         dto.setPlatforms(platforms);
+
+        List<Category> categories = gameCategoryRepository.findByGameId(game.getId())
+                .stream()
+                .map(GameCategory::getCategory)
+                .collect(Collectors.toList());
+
+        dto.setCategories(categories);
 
         return dto;
     }
@@ -97,6 +111,28 @@ public class GameMapper {
                     .collect(Collectors.toList());
 
             gamePlatformRepository.saveAll(gamePlatforms);
+        }
+    }
+
+    public void saveCategoriesForGame(Game game, List<Category> categories) {
+        if (categories == null) {
+            return;
+        }
+
+        List<GameCategory> existingCategories = gameCategoryRepository.findByGameId(game.getId());
+        gameCategoryRepository.deleteAll(existingCategories);
+
+        if (!categories.isEmpty()) {
+            List<GameCategory> gameCategories = categories.stream()
+                    .map(category -> {
+                        GameCategory gameCategory = new GameCategory();
+                        gameCategory.setGame(game);
+                        gameCategory.setCategory(category);
+                        return gameCategory;
+                    })
+                    .collect(Collectors.toList());
+
+            gameCategoryRepository.saveAll(gameCategories);
         }
     }
 }
