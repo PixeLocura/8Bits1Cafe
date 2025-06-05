@@ -50,6 +50,10 @@ public class AdminGameServiceImpl implements AdminGameService {
             gameMapper.savePlatformsForGame(savedGame, game.getPlatforms());
         }
 
+        if (game.getCategories() != null && !game.getCategories().isEmpty()) {
+            gameMapper.saveCategoriesForGame(savedGame, game.getCategories());
+        }
+
         return gameMapper.toDTO(savedGame);
     }
 
@@ -72,9 +76,12 @@ public class AdminGameServiceImpl implements AdminGameService {
 
         Game savedGame = gameRepository.save(existingGame);
 
-        // Update platforms if provided
         if (updatedGame.getPlatforms() != null) {
             gameMapper.savePlatformsForGame(savedGame, updatedGame.getPlatforms());
+        }
+
+        if (updatedGame.getCategories() != null) {
+            gameMapper.saveCategoriesForGame(savedGame, updatedGame.getCategories());
         }
 
         return gameMapper.toDTO(savedGame);
