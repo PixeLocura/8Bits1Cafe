@@ -1,7 +1,6 @@
 package com.pixelocura.bitscafe.controller;
 
 import com.pixelocura.bitscafe.dto.GameDTO;
-import com.pixelocura.bitscafe.model.entity.Game;
 import com.pixelocura.bitscafe.service.AdminGameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

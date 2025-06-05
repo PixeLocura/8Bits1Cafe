@@ -1,4 +1,5 @@
 package com.pixelocura.bitscafe.service.impl;
+
 import com.pixelocura.bitscafe.dto.GameDTO;
 import com.pixelocura.bitscafe.mapper.GameMapper;
 import com.pixelocura.bitscafe.model.entity.Game;
@@ -39,12 +40,16 @@ public class AdminGameServiceImpl implements AdminGameService {
         log.debug("Incoming DTO → title={}, coverUrl={}", game.getTitle(), game.getCoverUrl());
         Game gameEntity = gameMapper.toEntity(game);
 
-
         if (gameRepository.existsByTitle(gameEntity.getTitle())) {
             throw new IllegalArgumentException("Ya existe un juego con ese título.");
         }
 
         Game savedGame = gameRepository.save(gameEntity);
+
+        if (game.getPlatforms() != null && !game.getPlatforms().isEmpty()) {
+            gameMapper.savePlatformsForGame(savedGame, game.getPlatforms());
+        }
+
         return gameMapper.toDTO(savedGame);
     }
 
@@ -66,8 +71,13 @@ public class AdminGameServiceImpl implements AdminGameService {
         existingGame.setReleaseDate(updatedGame.getReleaseDate());
 
         Game savedGame = gameRepository.save(existingGame);
-        return gameMapper.toDTO(savedGame);
 
+        // Update platforms if provided
+        if (updatedGame.getPlatforms() != null) {
+            gameMapper.savePlatformsForGame(savedGame, updatedGame.getPlatforms());
+        }
+
+        return gameMapper.toDTO(savedGame);
     }
 
     @Override
