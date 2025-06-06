@@ -1,6 +1,7 @@
 package com.pixelocura.bitscafe.dto;
 
 import com.pixelocura.bitscafe.model.enums.Category;
+import com.pixelocura.bitscafe.model.enums.Language;
 import com.pixelocura.bitscafe.model.enums.Platform;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -34,6 +35,8 @@ public class GameDTO {
     private List<Platform> platforms;
 
     private List<Category> categories;
+
+    private List<Language> languages;
 
     private ZonedDateTime creationDate;
 

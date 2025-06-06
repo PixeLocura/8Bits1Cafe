@@ -1,8 +1,11 @@
 package com.pixelocura.bitscafe.model.enums;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.Optional;
 
+@Getter
 public enum Category {
     ACTION("Acción", "Juegos rápidos centrados en el combate y el movimiento."),
     ADVENTURE("Aventura", "Juegos de exploración impulsados por la historia."),
@@ -26,14 +29,6 @@ public enum Category {
     Category(String displayName, String description) {
         this.displayName = displayName;
         this.description = description;
-    }
-
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     public static Optional<Category> fromDisplayName(String displayName) {

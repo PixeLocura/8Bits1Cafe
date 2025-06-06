@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-
 public class AdminGameServiceImpl implements AdminGameService {
     private final GameRepository gameRepository;
     private final GameMapper gameMapper;
@@ -31,7 +30,6 @@ public class AdminGameServiceImpl implements AdminGameService {
 
     @Override
     public Page<GameDTO> paginate(Pageable pageable) {
-
         return gameRepository.findAll(pageable).map(gameMapper::toDTO);
     }
 
@@ -52,6 +50,10 @@ public class AdminGameServiceImpl implements AdminGameService {
 
         if (game.getCategories() != null && !game.getCategories().isEmpty()) {
             gameMapper.saveCategoriesForGame(savedGame, game.getCategories());
+        }
+
+        if (game.getLanguages() != null && !game.getLanguages().isEmpty()) {
+            gameMapper.saveLanguagesForGame(savedGame, game.getLanguages());
         }
 
         return gameMapper.toDTO(savedGame);
@@ -84,6 +86,10 @@ public class AdminGameServiceImpl implements AdminGameService {
             gameMapper.saveCategoriesForGame(savedGame, updatedGame.getCategories());
         }
 
+        if (updatedGame.getLanguages() != null) {
+            gameMapper.saveLanguagesForGame(savedGame, updatedGame.getLanguages());
+        }
+
         return gameMapper.toDTO(savedGame);
     }
 
@@ -93,6 +99,5 @@ public class AdminGameServiceImpl implements AdminGameService {
             throw new IllegalArgumentException("Juego no encontrado con ID: " + id);
         }
         gameRepository.deleteById(id);
-
     }
 }

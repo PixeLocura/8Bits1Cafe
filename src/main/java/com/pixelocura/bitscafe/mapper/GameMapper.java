@@ -4,11 +4,14 @@ import com.pixelocura.bitscafe.dto.GameDTO;
 import com.pixelocura.bitscafe.model.entity.Developer;
 import com.pixelocura.bitscafe.model.entity.Game;
 import com.pixelocura.bitscafe.model.entity.GameCategory;
+import com.pixelocura.bitscafe.model.entity.GameLanguage;
 import com.pixelocura.bitscafe.model.entity.GamePlatform;
 import com.pixelocura.bitscafe.model.enums.Category;
+import com.pixelocura.bitscafe.model.enums.Language;
 import com.pixelocura.bitscafe.model.enums.Platform;
 import com.pixelocura.bitscafe.repository.DeveloperRepository;
 import com.pixelocura.bitscafe.repository.GameCategoryRepository;
+import com.pixelocura.bitscafe.repository.GameLanguageRepository;
 import com.pixelocura.bitscafe.repository.GamePlatformRepository;
 import org.springframework.stereotype.Component;
 
@@ -23,13 +26,16 @@ public class GameMapper {
     private final DeveloperRepository developerRepository;
     private final GamePlatformRepository gamePlatformRepository;
     private final GameCategoryRepository gameCategoryRepository;
+    private final GameLanguageRepository gameLanguageRepository;
 
     public GameMapper(DeveloperRepository developerRepository,
             GamePlatformRepository gamePlatformRepository,
-            GameCategoryRepository gameCategoryRepository) {
+            GameCategoryRepository gameCategoryRepository,
+            GameLanguageRepository gameLanguageRepository) {
         this.developerRepository = developerRepository;
         this.gamePlatformRepository = gamePlatformRepository;
         this.gameCategoryRepository = gameCategoryRepository;
+        this.gameLanguageRepository = gameLanguageRepository;
     }
 
     public GameDTO toDTO(Game game) {
@@ -60,6 +66,13 @@ public class GameMapper {
                 .collect(Collectors.toList());
 
         dto.setCategories(categories);
+
+        List<Language> languages = gameLanguageRepository.findByGameId(game.getId())
+                .stream()
+                .map(GameLanguage::getLanguage)
+                .collect(Collectors.toList());
+
+        dto.setLanguages(languages);
 
         return dto;
     }
@@ -133,6 +146,28 @@ public class GameMapper {
                     .collect(Collectors.toList());
 
             gameCategoryRepository.saveAll(gameCategories);
+        }
+    }
+
+    public void saveLanguagesForGame(Game game, List<Language> languages) {
+        if (languages == null) {
+            return;
+        }
+
+        List<GameLanguage> existingLanguages = gameLanguageRepository.findByGameId(game.getId());
+        gameLanguageRepository.deleteAll(existingLanguages);
+
+        if (!languages.isEmpty()) {
+            List<GameLanguage> gameLanguages = languages.stream()
+                    .map(language -> {
+                        GameLanguage gameLanguage = new GameLanguage();
+                        gameLanguage.setGame(game);
+                        gameLanguage.setLanguage(language);
+                        return gameLanguage;
+                    })
+                    .collect(Collectors.toList());
+
+            gameLanguageRepository.saveAll(gameLanguages);
         }
     }
 }
