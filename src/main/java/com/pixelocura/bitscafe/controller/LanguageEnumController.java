@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -26,8 +27,12 @@ public class LanguageEnumController {
     }
 
     @GetMapping("/isocode/{code}")
-    public ResponseEntity<Language> getLanguageByIsoCode(@PathVariable String code) {
-        Language language = languageEnumService.getLanguageByIsoCode(code);
-        return language != null ? ResponseEntity.ok(language) : ResponseEntity.notFound().build();
+    public ResponseEntity<Map<String, String>> getLanguageByIsoCode(@PathVariable String code) {
+        Optional<Language> language = languageEnumService.getLanguageByIsoCode(code);
+        return language.map(lang -> ResponseEntity.ok(Map.of(
+                "isoCode", lang.name(),
+                "name", lang.getName(),
+                "localName", lang.getLocalName()
+        ))).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

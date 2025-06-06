@@ -1,8 +1,11 @@
 package com.pixelocura.bitscafe.model.enums;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.Optional;
 
+@Getter
 public enum Language {
     EN("Inglés", "English"),
     ES("Español", "Español"),
@@ -21,14 +24,6 @@ public enum Language {
     Language(String name, String localName) {
         this.name = name;
         this.localName = localName;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getLocalName() {
-        return localName;
     }
 
     public static Optional<Language> fromIsoCode(String isoCode) {
