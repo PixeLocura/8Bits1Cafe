@@ -28,19 +28,19 @@ public enum Language {
 
     public static Optional<Language> fromIsoCode(String isoCode) {
         return Arrays.stream(values())
-                .filter(language -> language.name().toLowerCase().equalsIgnoreCase(isoCode.toLowerCase()))
+                .filter(language -> language.name().equalsIgnoreCase(isoCode))
                 .findFirst();
     }
 
     public static Optional<Language> fromName(String name) {
         return Arrays.stream(values())
-                .filter(language -> language.getName().toLowerCase().equalsIgnoreCase(name.toLowerCase()))
+                .filter(language -> language.getName().equalsIgnoreCase(name))
                 .findFirst();
     }
 
     public static Optional<Language> fromLocalName(String localName) {
         return Arrays.stream(values())
-                .filter(language -> language.getLocalName().toLowerCase().equalsIgnoreCase(localName.toLowerCase()))
+                .filter(language -> language.getLocalName().equalsIgnoreCase(localName))
                 .findFirst();
     }
 }
