@@ -1,8 +1,11 @@
 package com.pixelocura.bitscafe.model.enums;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.Optional;
 
+@Getter
 public enum Platform {
     WINDOWS("Windows"),
     MAC_OS("MacOS"),
@@ -14,10 +17,6 @@ public enum Platform {
 
     Platform(String displayName) {
         this.displayName = displayName;
-    }
-
-    public String getDisplayName() {
-        return displayName;
     }
 
     public static Optional<Platform> fromDisplayName(String displayName) {
