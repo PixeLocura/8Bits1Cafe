@@ -282,7 +282,6 @@ public class UserServiceUnitTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(userRepository.findByUsername("newUsername")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(userMapper.toDTO(existingUser)).thenReturn(updateDTO);
 
         // Act
