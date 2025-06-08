@@ -16,7 +16,7 @@ public class CountryEnumService {
         return Arrays.asList(Country.values());
     }
 
-    public Map<String, Map<String, String>> getCountriesWithNames() {
+    public Map<String, Map<String, String>> getCountryDetailsMap() {
         return Arrays.stream(Country.values())
                 .collect(Collectors.toMap(
                         Country::name,
