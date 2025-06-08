@@ -22,8 +22,8 @@ public class CountryEnumController {
     }
 
     @GetMapping("/names")
-    public ResponseEntity<Map<String, Map<String, String>>> getCountriesWithNames() {
-        return ResponseEntity.ok(countryEnumService.getCountriesWithNames());
+    public ResponseEntity<Map<String, Map<String, String>>> getCountryDetails() {
+        return ResponseEntity.ok(countryEnumService.getCountryDetailsMap());
     }
 
     @GetMapping("/isocode/{code}")
