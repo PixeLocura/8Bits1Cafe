@@ -41,6 +41,9 @@ public class AdminGameController {
     @GetMapping("/{id}")
     public ResponseEntity<GameDTO> getById(@PathVariable UUID id) {
         GameDTO game = adminGameService.findById(id);
+        if (game == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(game);
     }
 
