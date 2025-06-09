@@ -17,24 +17,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "Usuarios", description = "API de Gestión de Usuarios")
+@Tag(name = "Users", description = "API de Gestión de Usuarios")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/users")
 public class AdminUserController {
     private final AdminUserService adminUserService;
 
-    @Operation(
-        summary = "Listar todos los usuarios",
-        description = "Obtiene una lista de todos los usuarios en el sistema.\nDevuelve todos los objetos Usuario con sus atributos.",
-        tags = {"users", "list"}
+    @Operation(summary = "Listar todos los usuarios", description = "Obtiene una lista de todos los usuarios en el sistema.\nDevuelve todos los objetos Usuario con sus atributos."
+    // tags = {"users", "list"}
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de usuarios obtenida exitosamente",
-            content = @Content(schema = @Schema(implementation = UserDTO.class)))
+            @ApiResponse(responseCode = "200", description = "Lista de usuarios obtenida exitosamente", content = @Content(schema = @Schema(implementation = UserDTO.class), mediaType = "application/json"))
     })
     @GetMapping
     public ResponseEntity<List<UserDTO>> list() {
@@ -42,14 +40,11 @@ public class AdminUserController {
         return ResponseEntity.ok(users);
     }
 
-    @Operation(
-        summary = "Obtener usuarios paginados",
-        description = "Obtiene una lista paginada de usuarios.\nTamaño de página predeterminado: 5, ordenado por nombre de usuario.",
-        tags = {"users", "pagination"}
+    @Operation(summary = "Obtener usuarios paginados", description = "Obtiene una lista paginada de usuarios.\nTamaño de página predeterminado: 5, ordenado por nombre de usuario."
+    // tags = {"users", "pagination"}
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Página de usuarios obtenida exitosamente",
-            content = @Content(schema = @Schema(implementation = Page.class)))
+            @ApiResponse(responseCode = "200", description = "Página de usuarios obtenida exitosamente", content = @Content(schema = @Schema(implementation = Page.class), mediaType = "application/json"))
     })
     @GetMapping("/page")
     public ResponseEntity<Page<UserDTO>> paginate(@PageableDefault(size = 5, sort = "username") Pageable pageable) {
@@ -57,16 +52,12 @@ public class AdminUserController {
         return ResponseEntity.ok(users);
     }
 
-    @Operation(
-        summary = "Crear nuevo usuario",
-        description = "Crea un nuevo usuario en el sistema con la información proporcionada.",
-        tags = {"users", "create"}
+    @Operation(summary = "Crear nuevo usuario", description = "Crea un nuevo usuario en el sistema con la información proporcionada."
+    // tags = {"users", "create"}
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente",
-            content = @Content(schema = @Schema(implementation = UserDTO.class))),
-        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o el usuario ya existe con ese nombre de usuario o correo electrónico",
-            content = @Content)
+            @ApiResponse(responseCode = "201", description = "Usuario creado exitosamente", content = @Content(schema = @Schema(implementation = UserDTO.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o el usuario ya existe con ese nombre de usuario o correo electrónico", content = @Content)
     })
     @PostMapping
     public ResponseEntity<UserDTO> create(@Valid @RequestBody UserDTO userDTO) {
@@ -74,16 +65,12 @@ public class AdminUserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
-    @Operation(
-        summary = "Obtener usuario por ID",
-        description = "Recupera un usuario por su UUID.",
-        tags = {"users", "get"}
+    @Operation(summary = "Obtener usuario por ID", description = "Recupera un usuario por su UUID."
+    // tags = {"users", "get"}
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuario encontrado",
-            content = @Content(schema = @Schema(implementation = UserDTO.class))),
-        @ApiResponse(responseCode = "404", description = "Usuario no encontrado",
-            content = @Content)
+            @ApiResponse(responseCode = "200", description = "Usuario encontrado", content = @Content(schema = @Schema(implementation = UserDTO.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content)
     })
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> get(@PathVariable UUID id) {
@@ -91,16 +78,12 @@ public class AdminUserController {
         return ResponseEntity.ok(user);
     }
 
-    @Operation(
-        summary = "Obtener usuario por nombre de usuario",
-        description = "Recupera un usuario por su nombre de usuario.",
-        tags = {"users", "get"}
+    @Operation(summary = "Obtener usuario por nombre de usuario", description = "Recupera un usuario por su nombre de usuario."
+    // tags = {"users", "get"}
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuario encontrado",
-            content = @Content(schema = @Schema(implementation = UserDTO.class))),
-        @ApiResponse(responseCode = "404", description = "Usuario no encontrado",
-            content = @Content)
+            @ApiResponse(responseCode = "200", description = "Usuario encontrado", content = @Content(schema = @Schema(implementation = UserDTO.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content)
     })
     @GetMapping("/by-username/{username}")
     public ResponseEntity<UserDTO> getByUsername(@PathVariable String username) {
@@ -108,16 +91,12 @@ public class AdminUserController {
         return ResponseEntity.ok(user);
     }
 
-    @Operation(
-        summary = "Obtener usuario por correo electrónico",
-        description = "Recupera un usuario por su dirección de correo electrónico.",
-        tags = {"users", "get"}
+    @Operation(summary = "Obtener usuario por correo electrónico", description = "Recupera un usuario por su dirección de correo electrónico."
+    // tags = {"users", "get"}
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuario encontrado",
-            content = @Content(schema = @Schema(implementation = UserDTO.class))),
-        @ApiResponse(responseCode = "404", description = "Usuario no encontrado",
-            content = @Content)
+            @ApiResponse(responseCode = "200", description = "Usuario encontrado", content = @Content(schema = @Schema(implementation = UserDTO.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content)
     })
     @GetMapping("/by-email/{email}")
     public ResponseEntity<UserDTO> getByEmail(@PathVariable String email) {
@@ -125,18 +104,13 @@ public class AdminUserController {
         return ResponseEntity.ok(user);
     }
 
-    @Operation(
-        summary = "Actualizar usuario",
-        description = "Actualiza la información de un usuario existente por su UUID.",
-        tags = {"users", "update"}
+    @Operation(summary = "Actualizar usuario", description = "Actualiza la información de un usuario existente por su UUID."
+    // tags = {"users", "update"}
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuario actualizado exitosamente",
-            content = @Content(schema = @Schema(implementation = UserDTO.class))),
-        @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o el nombre de usuario/correo electrónico ya está en uso por otro usuario",
-            content = @Content),
-        @ApiResponse(responseCode = "404", description = "Usuario no encontrado",
-            content = @Content)
+            @ApiResponse(responseCode = "200", description = "Usuario actualizado exitosamente", content = @Content(schema = @Schema(implementation = UserDTO.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o el nombre de usuario/correo electrónico ya está en uso por otro usuario", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content)
     })
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> update(@PathVariable UUID id, @Valid @RequestBody UserDTO userDTO) {
@@ -144,16 +118,12 @@ public class AdminUserController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    @Operation(
-        summary = "Eliminar usuario",
-        description = "Elimina un usuario del sistema por su UUID.",
-        tags = {"users", "delete"}
+    @Operation(summary = "Eliminar usuario", description = "Elimina un usuario del sistema por su UUID."
+    // tags = {"users", "delete"}
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Usuario eliminado exitosamente",
-            content = @Content),
-        @ApiResponse(responseCode = "404", description = "Usuario no encontrado",
-            content = @Content)
+            @ApiResponse(responseCode = "204", description = "Usuario eliminado exitosamente", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado", content = @Content)
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
