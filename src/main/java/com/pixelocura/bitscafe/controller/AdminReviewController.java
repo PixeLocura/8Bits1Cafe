@@ -49,9 +49,21 @@ public class AdminReviewController {
     public ResponseEntity<ReviewDTO> getReviewByGameAndUser(
             @PathVariable UUID gameId,
             @PathVariable UUID userId) {
-        ReviewDTO review = adminReviewService.getReviewByUserAndGame(userId, gameId);
-        return ResponseEntity.ok(review);
-    }
+        try {
+            ReviewDTO review = adminReviewService.getReviewByUserAndGame(userId, gameId);
+            return ResponseEntity.ok(review);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build(); // Para que no lance error 500
+        } //ESO DEL TRY PUSE PARA QUE NO TENGA EL ERROR CUANDO
+    }     //LA CELDA DE FECHA DE CREACION DE REVIEW ESTÉ VACIA NO LANZE ERROR
+    //Metodo anterior:
+    //@GetMapping("/games/{gameId}/users/{userId}")
+    //    public ResponseEntity<ReviewDTO> getReviewByGameAndUser(
+    //            @PathVariable UUID gameId,
+    //            @PathVariable UUID userId) {
+    //        ReviewDTO review = adminReviewService.getReviewByUserAndGame(userId, gameId);
+    //        return ResponseEntity.ok(review);
+    //    }
 
     // PUT /api/v1/games/{gameId}/users/{userId}/reviews
     @PutMapping("/games/{gameId}/users/{userId}")

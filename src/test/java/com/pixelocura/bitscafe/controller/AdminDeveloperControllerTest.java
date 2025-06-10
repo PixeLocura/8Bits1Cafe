@@ -37,7 +37,6 @@ public class AdminDeveloperControllerTest {
         assertNotNull(createResponse.getBody());
         assertNotNull(createResponse.getBody().getId());
         assertEquals("Test Developer", createResponse.getBody().getName());
-
         UUID developerId = createResponse.getBody().getId();
 
         // Get developer by ID

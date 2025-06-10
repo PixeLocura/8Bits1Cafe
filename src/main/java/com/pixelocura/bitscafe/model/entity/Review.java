@@ -50,6 +50,7 @@ public class Review {
     @PrePersist
     public void prePersist() {
         this.creationDate = ZonedDateTime.now(ZoneOffset.UTC);
+
     }
 
     @PreUpdate
