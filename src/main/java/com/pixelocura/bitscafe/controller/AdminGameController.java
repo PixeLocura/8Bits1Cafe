@@ -2,6 +2,7 @@ package com.pixelocura.bitscafe.controller;
 
 import com.pixelocura.bitscafe.dto.GameDTO;
 import com.pixelocura.bitscafe.service.AdminGameService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +33,7 @@ public class AdminGameController {
     }
 
     @PostMapping
-    public ResponseEntity<GameDTO> create(@RequestBody GameDTO gameDTO) {
+    public ResponseEntity<GameDTO> create(@Valid @RequestBody GameDTO gameDTO) {
         GameDTO createdGame = adminGameService.create(gameDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdGame);
     }
