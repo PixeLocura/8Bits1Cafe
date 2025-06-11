@@ -1,17 +1,14 @@
 package com.pixelocura.bitscafe.service;
 
-import com.pixelocura.bitscafe.model.entity.Review;
-import com.pixelocura.bitscafe.model.entity.Game;
-import com.pixelocura.bitscafe.model.entity.User;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.pixelocura.bitscafe.dto.ReviewDTO;
+
 import java.util.List;
+import java.util.UUID;
 
 public interface AdminReviewService {
-    List<Review> findAll();
-    Page<Review> paginate(Pageable pageable);
-    Review create(Review review);
-    Review findById(User user, Game game);
-    Review update(User user, Game game, Review updatedReview);
-    void delete(User user, Game game);
+    List<ReviewDTO> getAllReviews();
+    ReviewDTO getReviewByUserAndGame(UUID userId, UUID gameId);
+    ReviewDTO createReview(ReviewDTO reviewDTO);
+    ReviewDTO updateReview(ReviewDTO reviewDTO);
+    void deleteReview(UUID userId, UUID gameId);
 }
