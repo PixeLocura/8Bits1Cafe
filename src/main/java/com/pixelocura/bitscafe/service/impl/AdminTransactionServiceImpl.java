@@ -28,11 +28,18 @@ public class AdminTransactionServiceImpl implements AdminTransactionService {
     private UserRepository userRepository; //final? x2
     private GameRepository gameRepository;
 
-    public AdminTransactionServiceImpl(TransactionRepository transactionRepository,
-                                       TransactionDetailRepository transactionDetailRepository) {
+    public AdminTransactionServiceImpl(
+            TransactionRepository transactionRepository,
+            TransactionDetailRepository transactionDetailRepository,
+            UserRepository userRepository,
+            GameRepository gameRepository
+    ) {
         this.transactionRepository = transactionRepository;
         this.transactionDetailRepository = transactionDetailRepository;
+        this.userRepository = userRepository;
+        this.gameRepository = gameRepository;
     }
+
 
     @Override
     public List<TransactionDTO> getTransactionsByUser(UUID userId) {
