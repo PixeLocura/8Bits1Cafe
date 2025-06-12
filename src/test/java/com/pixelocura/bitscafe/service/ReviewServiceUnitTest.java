@@ -12,6 +12,9 @@ import com.pixelocura.bitscafe.service.impl.AdminReviewServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
@@ -20,11 +23,20 @@ import static org.mockito.Mockito.*;
 
 class ReviewServiceUnitTest {
 
+    @Mock
     private ReviewRepository reviewRepository;
+
+    @Mock
     private UserRepository userRepository;
+
+    @Mock
     private GameRepository gameRepository;
+
+    @Mock
     private ReviewMapper reviewMapper;
-    private AdminReviewService reviewService;
+
+    @InjectMocks
+    private AdminReviewServiceImpl reviewService;
 
     private UUID userId;
     private UUID gameId;
@@ -33,12 +45,7 @@ class ReviewServiceUnitTest {
 
     @BeforeEach
     void setUp() {
-        reviewRepository = mock(ReviewRepository.class);
-        userRepository = mock(UserRepository.class);
-        gameRepository = mock(GameRepository.class);
-        reviewMapper = mock(ReviewMapper.class);
-
-        reviewService = new AdminReviewServiceImpl(reviewRepository, userRepository, gameRepository, reviewMapper);
+        MockitoAnnotations.openMocks(this); // Activamos los @Mock e @InjectMocks
 
         userId = UUID.randomUUID();
         gameId = UUID.randomUUID();
