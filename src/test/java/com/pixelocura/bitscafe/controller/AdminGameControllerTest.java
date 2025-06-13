@@ -1,119 +1,152 @@
 package com.pixelocura.bitscafe.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.pixelocura.bitscafe.dto.DeveloperDTO;
 import com.pixelocura.bitscafe.dto.GameDTO;
+import com.pixelocura.bitscafe.service.AdminGameService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 
 import java.time.ZonedDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AdminGameControllerTest {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @Mock
+    private AdminGameService adminGameService;
+
+    @InjectMocks
+    private AdminGameController adminGameController;
+
+    private UUID gameId;
+    private UUID developerId;
+    private GameDTO sampleGame;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        gameId = UUID.randomUUID();
+        developerId = UUID.randomUUID();
+
+        sampleGame = new GameDTO();
+        sampleGame.setId(gameId);
+        sampleGame.setDeveloper_id(developerId);
+        sampleGame.setTitle("Test Game");
+        sampleGame.setDescription("Test Description");
+        sampleGame.setPrice(29.99);
+        sampleGame.setCoverUrl("https://example.com/cover.jpg");
+        sampleGame.setReleaseDate(ZonedDateTime.now());
+    }
 
     @Test
-    public void testGameCRUD() {
-        ResponseEntity<List> response = restTemplate.getForEntity("/developers", List.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+    @DisplayName("CP01 - Obtener todos los juegos")
+    void list_returnsAllGames() {
+        when(adminGameService.findAll()).thenReturn(List.of(sampleGame));
+
+        ResponseEntity<List<GameDTO>> response = adminGameController.list();
+
+        assertEquals(200, response.getStatusCodeValue());
         assertNotNull(response.getBody());
-        assertFalse(response.getBody().isEmpty());
+        assertEquals(1, response.getBody().size());
 
-        // Paso 2: Convertir primer resultado a DeveloperDTO
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule()); // Soporte para ZonedDateTime
+        verify(adminGameService, times(1)).findAll();
+    }
 
-        LinkedHashMap<String, Object> devMap = (LinkedHashMap<String, Object>) response.getBody().get(0);
-        DeveloperDTO dev = mapper.convertValue(devMap, DeveloperDTO.class);
-        UUID developerId = dev.getId();
+    @Test
+    @DisplayName("CP02 - Obtener juegos paginados")
+    void paginate_returnsPagedGames() {
+        PageRequest pageable = PageRequest.of(0, 5);
+        Page<GameDTO> pagedGames = new PageImpl<>(List.of(sampleGame), pageable, 1);
 
-        // Paso 3: Usar developerId para crear el juego
-        GameDTO gameToCreate = new GameDTO();
-        gameToCreate.setDeveloper_id(developerId);
-        gameToCreate.setTitle("Test Game");
-        gameToCreate.setDescription("A test game for unit testing");
-        gameToCreate.setPrice(29.99);
-        gameToCreate.setCoverUrl("https://example.com/testgame.jpg");
-        gameToCreate.setReleaseDate(ZonedDateTime.now());
+        when(adminGameService.paginate(pageable)).thenReturn(pagedGames);
 
-        ResponseEntity<GameDTO> createResponse = restTemplate.postForEntity(
-                "/games", gameToCreate, GameDTO.class);
+        ResponseEntity<Page<GameDTO>> response = adminGameController.paginate(pageable);
 
-        assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
-        assertNotNull(createResponse.getBody());
-        assertNotNull(createResponse.getBody().getId());
-        assertEquals("Test Game", createResponse.getBody().getTitle());
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().getTotalElements());
 
-        UUID gameId = createResponse.getBody().getId();
+        verify(adminGameService, times(1)).paginate(pageable);
+    }
 
-        // Obtener juego por ID
-        ResponseEntity<GameDTO> getResponse = restTemplate.getForEntity(
-                "/games/" + gameId, GameDTO.class);
+    @Test
+    @DisplayName("CP03 - Crear un juego")
+    void create_returnsCreatedGame() {
+        when(adminGameService.create(sampleGame)).thenReturn(sampleGame);
 
-        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
-        assertNotNull(getResponse.getBody());
-        assertEquals(gameId, getResponse.getBody().getId());
+        ResponseEntity<GameDTO> response = adminGameController.create(sampleGame);
 
-        // Actualizar juego
-        GameDTO updateDTO = new GameDTO();
-        updateDTO.setDeveloper_id(gameToCreate.getDeveloper_id());
-        updateDTO.setTitle("Updated Test Game");
-        updateDTO.setDescription("Updated description");
-        updateDTO.setPrice(19.99);
-        updateDTO.setCoverUrl("https://example.com/updated.jpg");
-        updateDTO.setReleaseDate(ZonedDateTime.now());
+        assertEquals(201, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals("Test Game", response.getBody().getTitle());
 
-        ResponseEntity<GameDTO> updateResponse = restTemplate.exchange(
-                "/games/" + gameId,
-                HttpMethod.PUT,
-                new HttpEntity<>(updateDTO),
-                GameDTO.class);
+        verify(adminGameService, times(1)).create(sampleGame);
+    }
 
-        assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
-        assertNotNull(updateResponse.getBody());
-        assertEquals("Updated Test Game", updateResponse.getBody().getTitle());
+    @Test
+    @DisplayName("CP04 - Obtener juego por ID (existe)")
+    void getById_returnsGameIfExists() {
+        when(adminGameService.findById(gameId)).thenReturn(sampleGame);
 
-        // Obtener todos los juegos
-        ResponseEntity<List<GameDTO>> getAllResponse = restTemplate.exchange(
-                "/games",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<GameDTO>>() {});
+        ResponseEntity<GameDTO> response = adminGameController.getById(gameId);
 
-        assertEquals(HttpStatus.OK, getAllResponse.getStatusCode());
-        assertNotNull(getAllResponse.getBody());
-        assertFalse(getAllResponse.getBody().isEmpty());
+        assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        assertEquals(gameId, response.getBody().getId());
 
-        // Eliminar juego
-        ResponseEntity<Void> deleteResponse = restTemplate.exchange(
-                "/games/" + gameId,
-                HttpMethod.DELETE,
-                null,
-                Void.class);
+        verify(adminGameService, times(1)).findById(gameId);
+    }
 
-        assertEquals(HttpStatus.NO_CONTENT, deleteResponse.getStatusCode());
+    @Test
+    @DisplayName("CP05 - Obtener juego por ID (no existe)")
+    void getById_returnsNotFoundIfGameIsNull() {
+        when(adminGameService.findById(gameId)).thenReturn(null);
 
-        // Verificar eliminación
-        ResponseEntity<GameDTO> getDeletedResponse = restTemplate.getForEntity(
-                "/games/" + gameId, GameDTO.class);
+        ResponseEntity<GameDTO> response = adminGameController.getById(gameId);
 
-        assertEquals(HttpStatus.NOT_FOUND, getDeletedResponse.getStatusCode());
+        assertEquals(404, response.getStatusCodeValue());
+        assertNull(response.getBody());
+
+        verify(adminGameService, times(1)).findById(gameId);
+    }
+
+    @Test
+    @DisplayName("CP06 - Actualizar juego")
+    void update_returnsUpdatedGame() {
+        GameDTO updatedGame = new GameDTO();
+        updatedGame.setDeveloper_id(developerId);
+        updatedGame.setTitle("Updated Game");
+        updatedGame.setDescription("Updated description");
+        updatedGame.setPrice(19.99);
+        updatedGame.setCoverUrl("https://example.com/updated.jpg");
+        updatedGame.setReleaseDate(ZonedDateTime.now());
+
+        when(adminGameService.update(gameId, updatedGame)).thenReturn(updatedGame);
+
+        ResponseEntity<GameDTO> response = adminGameController.update(gameId, updatedGame);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("Updated Game", response.getBody().getTitle());
+
+        verify(adminGameService, times(1)).update(gameId, updatedGame);
+    }
+
+    @Test
+    @DisplayName("CP07 - Eliminar juego")
+    void delete_returnsNoContent() {
+        ResponseEntity<Void> response = adminGameController.delete(gameId);
+
+        assertEquals(204, response.getStatusCodeValue());
+        verify(adminGameService, times(1)).delete(gameId);
     }
 }
-
-
