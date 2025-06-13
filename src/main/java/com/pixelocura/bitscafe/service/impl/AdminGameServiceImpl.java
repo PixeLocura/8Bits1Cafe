@@ -1,4 +1,5 @@
 package com.pixelocura.bitscafe.service.impl;
+
 import com.pixelocura.bitscafe.dto.GameDTO;
 import com.pixelocura.bitscafe.mapper.GameMapper;
 import com.pixelocura.bitscafe.model.entity.Game;
@@ -17,7 +18,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-
 public class AdminGameServiceImpl implements AdminGameService {
     private final GameRepository gameRepository;
     private final GameMapper gameMapper;
@@ -30,7 +30,6 @@ public class AdminGameServiceImpl implements AdminGameService {
 
     @Override
     public Page<GameDTO> paginate(Pageable pageable) {
-
         return gameRepository.findAll(pageable).map(gameMapper::toDTO);
     }
 
@@ -39,12 +38,24 @@ public class AdminGameServiceImpl implements AdminGameService {
         log.debug("Incoming DTO → title={}, coverUrl={}", game.getTitle(), game.getCoverUrl());
         Game gameEntity = gameMapper.toEntity(game);
 
-
         if (gameRepository.existsByTitle(gameEntity.getTitle())) {
             throw new IllegalArgumentException("Ya existe un juego con ese título.");
         }
 
         Game savedGame = gameRepository.save(gameEntity);
+
+        if (game.getPlatforms() != null && !game.getPlatforms().isEmpty()) {
+            gameMapper.savePlatformsForGame(savedGame, game.getPlatforms());
+        }
+
+        if (game.getCategories() != null && !game.getCategories().isEmpty()) {
+            gameMapper.saveCategoriesForGame(savedGame, game.getCategories());
+        }
+
+        if (game.getLanguages() != null && !game.getLanguages().isEmpty()) {
+            gameMapper.saveLanguagesForGame(savedGame, game.getLanguages());
+        }
+
         return gameMapper.toDTO(savedGame);
     }
 
@@ -66,8 +77,20 @@ public class AdminGameServiceImpl implements AdminGameService {
         existingGame.setReleaseDate(updatedGame.getReleaseDate());
 
         Game savedGame = gameRepository.save(existingGame);
-        return gameMapper.toDTO(savedGame);
 
+        if (updatedGame.getPlatforms() != null) {
+            gameMapper.savePlatformsForGame(savedGame, updatedGame.getPlatforms());
+        }
+
+        if (updatedGame.getCategories() != null) {
+            gameMapper.saveCategoriesForGame(savedGame, updatedGame.getCategories());
+        }
+
+        if (updatedGame.getLanguages() != null) {
+            gameMapper.saveLanguagesForGame(savedGame, updatedGame.getLanguages());
+        }
+
+        return gameMapper.toDTO(savedGame);
     }
 
     @Override
@@ -76,6 +99,5 @@ public class AdminGameServiceImpl implements AdminGameService {
             throw new IllegalArgumentException("Juego no encontrado con ID: " + id);
         }
         gameRepository.deleteById(id);
-
     }
 }

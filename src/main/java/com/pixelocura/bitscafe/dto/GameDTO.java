@@ -1,5 +1,8 @@
 package com.pixelocura.bitscafe.dto;
 
+import com.pixelocura.bitscafe.model.enums.Category;
+import com.pixelocura.bitscafe.model.enums.Language;
+import com.pixelocura.bitscafe.model.enums.Platform;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +11,7 @@ import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -33,6 +37,12 @@ public class GameDTO {
 
     @NotNull(message = "Error")
     private ZonedDateTime releaseDate;
+
+    private List<Platform> platforms;
+
+    private List<Category> categories;
+
+    private List<Language> languages;
 
     private ZonedDateTime creationDate;
 

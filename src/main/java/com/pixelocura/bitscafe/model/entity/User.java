@@ -9,6 +9,8 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import com.pixelocura.bitscafe.model.enums.Country;
+
 @Data
 @Entity
 @Table(name = "users")
@@ -38,21 +40,12 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @ManyToOne
-    @JoinColumn(
-            name = "country_iso",
-            referencedColumnName = "iso_code",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_user_country")
-    )
+    @Enumerated(EnumType.STRING)
+    @Column(name = "country_iso", nullable = false)
     private Country country;
 
     @OneToOne
-    @JoinColumn(
-            name = "developer_profile",
-            referencedColumnName = "id", 
-            foreignKey = @ForeignKey(name = "fk_user_developer_profile")
-    )
+    @JoinColumn(name = "developer_profile", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_user_developer_profile"))
     private Developer developerProfile;
 
     @Column(name = "registration_date", nullable = false)
