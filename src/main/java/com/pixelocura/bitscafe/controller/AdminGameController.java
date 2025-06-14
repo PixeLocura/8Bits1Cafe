@@ -2,6 +2,7 @@ package com.pixelocura.bitscafe.controller;
 
 import com.pixelocura.bitscafe.dto.GameDTO;
 import com.pixelocura.bitscafe.service.AdminGameService;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -66,6 +67,9 @@ public class AdminGameController {
     @GetMapping("/{id}")
     public ResponseEntity<GameDTO> getById(@PathVariable UUID id) {
         GameDTO game = adminGameService.findById(id);
+        if (game == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(game);
     }
 
