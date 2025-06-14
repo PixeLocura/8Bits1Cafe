@@ -2,11 +2,14 @@ package com.pixelocura.bitscafe.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.time.ZonedDateTime;
 import java.util.UUID;
+
+import com.pixelocura.bitscafe.model.enums.Country;
 
 @Data
 public class UserDTO {
@@ -31,9 +34,8 @@ public class UserDTO {
     @Pattern(regexp = "^[a-zA-Z0-9_-]+$", message = "Username can only contain letters, numbers, underscores and hyphens")
     private String username;
 
-    @NotBlank(message = "Country ISO code is required")
-    @Pattern(regexp = "^[A-Z]{2,3}$", message = "Invalid country ISO code format")
-    private String countryIsoCode;
+    @NotNull(message = "Country is required")
+    private Country country;
 
     private UUID developerProfileId;
 
