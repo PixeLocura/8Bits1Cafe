@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: bits-api
+    env: docker
+    repo: https://github.com/PixeLocura/8Bits1Cafe
+    branch: main
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:postgresql://db:5432/bits
+      - key: SPRING_DATASOURCE_USERNAME
+        value: postgres
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: danilamasguapa
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: create-drop
+      - key: SPRING_JPA_SHOW_SQL
+        value: "true"
+      - key: SPRING_SQL_INIT_MODE
+        value: never
+      - key: SPRING_JPA_DATABASE_PLATFORM
+        value: org.hibernate.dialect.PostgreSQLDialect
+    plan: free
+    autoDeploy: true
