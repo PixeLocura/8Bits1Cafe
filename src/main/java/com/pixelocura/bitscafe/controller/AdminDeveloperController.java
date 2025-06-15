@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 @Tag(name = "Developers", description = "API de Gestión de Desarrolladores")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 @RestController
 @RequestMapping("/developers")
 public class AdminDeveloperController {

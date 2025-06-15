@@ -1,5 +1,6 @@
 package com.pixelocura.bitscafe.dto;
 
+import com.pixelocura.bitscafe.model.enums.ERole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,7 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.time.ZonedDateTime;
 import java.util.UUID;
-
+import com.pixelocura.bitscafe.model.enums.ERole;
 import com.pixelocura.bitscafe.model.enums.Country;
 
 @Data
@@ -19,6 +20,7 @@ public class UserDTO {
     @NotBlank(message = "Email is required")
     private String email;
 
+    private ERole role;
     private String password;
 
     @NotBlank(message = "Name is required")

@@ -2,7 +2,9 @@ package com.pixelocura.bitscafe.service.impl;
 
 import com.pixelocura.bitscafe.dto.UserDTO;
 import com.pixelocura.bitscafe.mapper.UserMapper;
+import com.pixelocura.bitscafe.model.entity.Role;
 import com.pixelocura.bitscafe.model.entity.User;
+import com.pixelocura.bitscafe.repository.RoleRepository;
 import com.pixelocura.bitscafe.repository.UserRepository;
 import com.pixelocura.bitscafe.service.AdminUserService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 public class AdminUserServiceImpl implements AdminUserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final RoleRepository roleRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,7 +51,6 @@ public class AdminUserServiceImpl implements AdminUserService {
                         "User already exists with username: " + userDTO.getUsername());
                 });
 
-        // Check for duplicate email
         userRepository.findByEmail(userDTO.getEmail())
                 .ifPresent(user -> {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -56,6 +58,13 @@ public class AdminUserServiceImpl implements AdminUserService {
                 });
 
         User user = userMapper.toEntity(userDTO);
+
+        if (userDTO.getRole() != null) {
+            Role roleEntity = roleRepository.findByName(userDTO.getRole())
+                    .orElseThrow(() -> new RuntimeException("Rol no encontrado: " + userDTO.getRole()));
+            user.setRole(roleEntity);
+        }
+
         User savedUser = userRepository.save(user);
         return userMapper.toDTO(savedUser);
     }
@@ -130,8 +139,9 @@ public class AdminUserServiceImpl implements AdminUserService {
     public void delete(UUID id) {
         if (!userRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "User not found with id: " + id);
+                    "User not found with id: " + id);
         }
         userRepository.deleteById(id);
     }
+
 }

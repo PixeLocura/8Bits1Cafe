@@ -1,5 +1,6 @@
 package com.pixelocura.bitscafe.model.entity;
 
+import com.pixelocura.bitscafe.model.enums.ERole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
@@ -48,6 +49,10 @@ public class User {
     @JoinColumn(name = "developer_profile", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_user_developer_profile"))
     private Developer developerProfile;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name="role_id", referencedColumnName = "id", foreignKey = @ForeignKey(name="fk_user_role"))
+    private Role role;
+
     @Column(name = "registration_date", nullable = false)
     private ZonedDateTime registrationDate;
 
@@ -62,5 +67,9 @@ public class User {
     @PreUpdate
     public void preUpdate() {
         this.updateDate = ZonedDateTime.now(ZoneOffset.UTC);
+    }
+
+    public ERole getRoleName() {
+        return role != null ? role.getName() : null;
     }
 }
