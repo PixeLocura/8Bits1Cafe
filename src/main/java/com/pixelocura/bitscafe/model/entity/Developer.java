@@ -14,8 +14,9 @@ public class Developer {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(columnDefinition = "UUID")
     private UUID id;
-    
-    @OneToOne(mappedBy = "developerProfile")
+
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_developer_user"))
     private User user;
 
     @Column(nullable = false)
