@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 .DS_Store
 .github/
+.env
 
 ### STS ###
 .apt_generated
