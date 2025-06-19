@@ -12,30 +12,53 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
+
 import java.io.IOException;
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class JWTFilter extends GenericFilterBean {
-    private final TokenProvider tokenProvider;
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest httpServletRequest = (HttpServletRequest)
-                request;
-        // TODO: Extraer el token JWT de la cabecera de autorización HTTP (Authorization Header)
-        String bearerToken =
-                httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
-        // TODO: Verificar si el token no es nulo/vacío y si empieza con el prefijo "Bearer "
-        if (StringUtils.hasText(bearerToken) &&
-                bearerToken.startsWith("Bearer ")) {
-            // Eliminar el prefijo "Bearer " para obtener solo el token
-            String token = bearerToken.substring(7);
-            // TODO: Utilizar el TokenProvider para obtener la autenticación a partir del token JWT
-            Authentication authentication = tokenProvider.getAuthentication(token);
-            // TODO: Establecer la autenticación en el contexto de seguridad de Spring para la solicitud actual
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+    private final TokenProvider tokenProvider;
+
+    private static final List<String> EXCLUDED_PATHS = List.of(
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/register/admin",
+            "/api/v1/auth/register/developer",
+            "/swagger-ui",
+            "/v3/api-docs",
+            "/swagger-ui.html"
+    );
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+
+        HttpServletRequest httpServletRequest = (HttpServletRequest) request;
+        String path = httpServletRequest.getRequestURI();
+
+        // ✅ Si es una ruta pública, saltarse la verificación del token
+        if (isExcluded(path)) {
+            chain.doFilter(request, response);
+            return;
         }
-        // TODO: Continuar con la cadena de filtros, permitiendo que la solicitud siga su curso
+
+        String bearerToken = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            String token = bearerToken.substring(7);
+            if (tokenProvider.validateToken(token)) { // 🔒 Verifica el token
+                Authentication authentication = tokenProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        }
+
         chain.doFilter(request, response);
+    }
+
+    private boolean isExcluded(String path) {
+        return EXCLUDED_PATHS.stream().anyMatch(path::startsWith);
     }
 }
