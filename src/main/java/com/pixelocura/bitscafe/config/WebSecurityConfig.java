@@ -4,7 +4,7 @@ import com.pixelocura.bitscafe.security.JWTConfigurer;
 import com.pixelocura.bitscafe.security.JWTFilter;
 import com.pixelocura.bitscafe.security.JwtAuthenticationEntryPoint;
 import com.pixelocura.bitscafe.security.TokenProvider;
-import com.pixelocura.bitscafe.security.AccessDeniedHandler;
+import com.pixelocura.bitscafe.security.CustomAccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,7 +51,7 @@ public class WebSecurityConfig {
                                  "/swagger-ui.html",
                                  "/swagger-ui/**",
                                  "/webjars/**").permitAll()
-                .requestMatchers("/api/v1/users").hasRole("ADMIN")
+                .requestMatchers("/users").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .apply(new JWTConfigurer(tokenProvider));
