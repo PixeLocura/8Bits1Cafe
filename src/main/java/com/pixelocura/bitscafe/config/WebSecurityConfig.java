@@ -39,10 +39,15 @@ public class WebSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // TODO: Desactiva la protección CSRF, ya que en APIs REST no se usa (se  autentica con tokens, no con cookies)
                 .authorizeHttpRequests(authorize -> authorize
                         // TODO: Permitir acceso público a las rutas de login, registro y endpoints públicos como Swagger UI
-                                .requestMatchers(antMatcher("/auth/login")).permitAll()
-                                .requestMatchers(antMatcher("/auth/register/developer")).permitAll()
-                                .requestMatchers(antMatcher("/auth/register/admin")).permitAll() //.requestMatchers(antMatcher("/books/recent")).permitAll()
-                                .requestMatchers("/api/v1/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**", "/webjars/**").permitAll()
+                               .requestMatchers(antMatcher("/api/v1/auth/login")).permitAll()
+.requestMatchers(antMatcher("/api/v1/auth/register/developer")).permitAll()
+.requestMatchers(antMatcher("/api/v1/auth/register/admin")).permitAll()
+.requestMatchers(antMatcher("/api/v1/swagger-ui/**"),
+                 antMatcher("/api/v1/api-docs/**"),
+                 antMatcher("/swagger-ui.html"),
+                 antMatcher("/swagger-ui/**"),
+                 antMatcher("/webjars/**")).permitAll()
+
                         // TODO: Cualquier otra solicitud requiere autenticación (JWT u otra autenticación configurada)
                                 .anyRequest().authenticated())
         // TODO: Permite la autenticación básica (para testing con Postman, por ejemplo)
