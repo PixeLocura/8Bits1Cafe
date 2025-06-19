@@ -50,6 +50,7 @@ public class WebSecurityConfig {
                                  "/swagger-ui.html",
                                  "/swagger-ui/**",
                                  "/webjars/**").permitAll()
+                .requestMatchers("/api/v1/users").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .apply(new JWTConfigurer(tokenProvider));
