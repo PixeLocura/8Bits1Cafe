@@ -10,4 +10,6 @@ WORKDIR /app
 
 COPY --from=builder /app/target/bitscafe-0.0.1-SNAPSHOT.jar app.jar
 
+COPY dbinit /app/sql
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
