@@ -4,7 +4,7 @@ import com.pixelocura.bitscafe.security.JWTConfigurer;
 import com.pixelocura.bitscafe.security.JWTFilter;
 import com.pixelocura.bitscafe.security.JwtAuthenticationEntryPoint;
 import com.pixelocura.bitscafe.security.TokenProvider;
-import com.pixelocura.bitscafe.security.CustomAccessDeniedHandler;
+//import com.pixelocura.bitscafe.security.CustomAccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +39,7 @@ public class WebSecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> {}) // usa config por defecto
-            .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint)                .accessDeniedHandler(customAccessDeniedHandler) )
+            .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint)  )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/login").permitAll()
