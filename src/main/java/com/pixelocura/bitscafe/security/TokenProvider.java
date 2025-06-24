@@ -19,6 +19,7 @@ import java.security.Key;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -63,8 +64,8 @@ public class TokenProvider {
         if (user.getDeveloperProfile() != null) {
             Developer dev = user.getDeveloperProfile();
             jwtBuilder
-                .claim("developerId", dev.getId().toString())
-                .claim("developerName", dev.getName());
+                    .claim("developerId", dev.getId().toString())
+                    .claim("developerName", dev.getName());
         }
 
         return jwtBuilder
@@ -79,8 +80,9 @@ public class TokenProvider {
         String role = claims.get("role").toString();
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
 
-        // Create UserPrincipal with minimal information from token
+        // Create UserPrincipal with information from token
         UserPrincipal principal = new UserPrincipal();
+        principal.setId(UUID.fromString(claims.get("userId", String.class)));
         principal.setEmail(claims.getSubject());
         principal.setAuthorities(authorities);
 
