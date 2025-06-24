@@ -69,7 +69,7 @@ public class AdminUserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN') or @userSecurity.isCurrentUser(#id)")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Obtener usuario por ID", description = "Recupera un usuario por su UUID."
     // tags = {"users", "get"}
     )
