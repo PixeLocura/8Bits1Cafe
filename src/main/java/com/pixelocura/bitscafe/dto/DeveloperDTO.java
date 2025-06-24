@@ -6,6 +6,7 @@ import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -23,4 +24,7 @@ public class DeveloperDTO {
     private String website;
 
     private ZonedDateTime creationDate;
+
+    // Add games list for developer
+    private List<GameDTO> games;
 }

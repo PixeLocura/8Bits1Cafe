@@ -27,7 +27,7 @@ services:
         ports:
             - "8080:8080"
         volumes:
-            - ./dbinit:/app/sql
+            - ./src/main/resources/db:/app/sql
         environment:
             DB_URL: jdbc:postgresql://db:5432/${DB_NAME:-bits}
             DB_USERNAME: ${DB_USERNAME:-postgres}

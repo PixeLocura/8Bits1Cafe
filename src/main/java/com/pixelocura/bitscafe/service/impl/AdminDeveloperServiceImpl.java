@@ -4,6 +4,7 @@ import com.pixelocura.bitscafe.dto.DeveloperDTO;
 import com.pixelocura.bitscafe.mapper.DeveloperMapper;
 import com.pixelocura.bitscafe.model.entity.Developer;
 import com.pixelocura.bitscafe.repository.DeveloperRepository;
+import com.pixelocura.bitscafe.repository.GameRepository;
 import com.pixelocura.bitscafe.service.AdminDeveloperService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class AdminDeveloperServiceImpl implements AdminDeveloperService {
     private final DeveloperRepository developerRepository;
     private final DeveloperMapper developerMapper;
+    private final GameRepository gameRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -45,7 +47,7 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
         developerRepository.findByName(developerDTO.getName())
                 .ifPresent(developer -> {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Developer already exists with name: " + developerDTO.getName());
+                            "Developer already exists with name: " + developerDTO.getName());
                 });
 
         Developer developer = developerMapper.toEntity(developerDTO);
@@ -58,7 +60,9 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
     public DeveloperDTO findById(UUID id) {
         Developer developer = developerRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Developer not found with id: " + id));
+                        "Developer not found with id: " + id));
+        // Fetch games and set to developer
+        developer.setGames(gameRepository.findByDeveloperId(id));
         return developerMapper.toDTO(developer);
     }
 
@@ -67,7 +71,7 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
     public DeveloperDTO findByName(String name) {
         Developer developer = developerRepository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Developer not found with name: " + name));
+                        "Developer not found with name: " + name));
         return developerMapper.toDTO(developer);
     }
 
@@ -76,13 +80,13 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
     public DeveloperDTO update(UUID id, DeveloperDTO developerDTO) {
         Developer existingDeveloper = developerRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Developer not found with id: " + id));
+                        "Developer not found with id: " + id));
 
         developerRepository.findByName(developerDTO.getName())
                 .ifPresent(developer -> {
                     if (!developer.getId().equals(id)) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "Developer name already taken: " + developerDTO.getName());
+                                "Developer name already taken: " + developerDTO.getName());
                     }
                 });
 
@@ -96,7 +100,7 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
     public void delete(UUID id) {
         if (!developerRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Developer not found with id: " + id);
+                    "Developer not found with id: " + id);
         }
         developerRepository.deleteById(id);
     }
