@@ -12,13 +12,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class DeveloperMapper {
     private final ModelMapper modelMapper;
+    private final GameMapper gameMapper;
 
     public DeveloperDTO toDTO(Developer developer) {
         DeveloperDTO dto = modelMapper.map(developer, DeveloperDTO.class);
-        // Map games to GameDTO if games are present
+        // Map games to GameDTO using GameMapper for full details
         if (developer.getGames() != null) {
             List<GameDTO> gameDTOs = developer.getGames().stream()
-                    .map(game -> modelMapper.map(game, GameDTO.class))
+                    .map(gameMapper::toDTO)
                     .toList();
             dto.setGames(gameDTOs);
         }
