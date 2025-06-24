@@ -57,7 +57,8 @@ public class WebSecurityConfig {
                                 "/swagger-ui/**", "/webjars/**")
                         .permitAll()
                         // Allow unauthenticated GET access to developer info
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/developers/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                "/developers/**").permitAll()
                         // TODO: Cualquier otra solicitud requiere autenticación (JWT u otra
                         // autenticación configurada)
                         .anyRequest().authenticated())
