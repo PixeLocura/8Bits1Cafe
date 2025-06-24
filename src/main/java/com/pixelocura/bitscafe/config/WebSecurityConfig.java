@@ -45,6 +45,10 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/v1/auth/login").permitAll()
                 .requestMatchers("/api/v1/auth/register/**").permitAll()
                                    .requestMatchers("/auth/login").permitAll()
+                .requestMatchers("/auth/register/developer").permitAll()
+                .requestMatchers("/auth/register/admin").permitAll()
+                                   .requestMatchers("/api/v1/auth/register/admin").permitAll()
+                                   .requestMatchers("/api/v1/auth/register/developer").permitAll()
                 .requestMatchers("/auth/register/**").permitAll()
                 .requestMatchers("/api/v1/swagger-ui/**",
                                  "/v3/api-docs/**",
