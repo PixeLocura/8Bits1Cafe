@@ -1,6 +1,8 @@
 package com.pixelocura.bitscafe.security;
 
 import com.pixelocura.bitscafe.exception.RoleNotFoundException;
+import com.pixelocura.bitscafe.model.entity.User;
+import com.pixelocura.bitscafe.model.entity.Developer;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -11,7 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -28,58 +29,70 @@ public class TokenProvider {
     private long jwtValidityInSeconds;
     private Key key;
     private JwtParser jwtParser;
+
     @PostConstruct
     public void init() {
-        // Generar la clave para firmar el JWT a partir del secreto configurado
-                key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
-        // Inicializar el parser JWT con la clave generada para firmar y validar tokens
-                jwtParser = Jwts
+        key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+        jwtParser = Jwts
                 .parserBuilder()
                 .setSigningKey(key)
                 .build();
     }
-    // TODO: Método para crear el token JWT con los detalles del usuario autenticado
+
     public String createAccessToken(Authentication authentication) {
-        // TODO: Obtener el email o nombre del usuario autenticado
-        String email = authentication.getName();
-        // TODO: Obtener el rol del usuario desde el objeto de autenticación
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        User user = userPrincipal.getUser();
+
         String role = authentication
                 .getAuthorities()
                 .stream()
                 .findFirst()
                 .orElseThrow(RoleNotFoundException::new)
                 .getAuthority();
-        // TODO: Construir y firmar el token JWT que incluye el rol y el email
-        return Jwts
+
+        JwtBuilder jwtBuilder = Jwts
                 .builder()
-                .setSubject(email) // El sujeto del token es el email o nombre de usuario
-                .claim("role", role) // El rol se incluye como claim en el token
-                .signWith(key, SignatureAlgorithm.HS512) // Firmar el token con el algoritmo HS512 y la clave
-                .setExpiration(new Date(System.currentTimeMillis() + jwtValidityInSeconds * 1000)) // Configurar la fecha de expiración  del token
+                .setSubject(user.getEmail())
+                .claim("role", role)
+                .claim("userId", user.getId().toString())
+                .claim("username", user.getUsername())
+                .claim("email", user.getEmail())
+                .claim("name", user.getName());
+
+        // Add developer information if user is a developer
+        if (user.getDeveloperProfile() != null) {
+            Developer dev = user.getDeveloperProfile();
+            jwtBuilder
+                .claim("developerId", dev.getId().toString())
+                .claim("developerName", dev.getName());
+        }
+
+        return jwtBuilder
+                .signWith(key, SignatureAlgorithm.HS512)
+                .setExpiration(new Date(System.currentTimeMillis() + jwtValidityInSeconds * 1000))
                 .compact();
     }
-    // TODO: Método para obtener la autenticación a partir del token JWT
+
     public Authentication getAuthentication(String token) {
-        // TODO: Extraer los claims (datos) del token JWT
         Claims claims = jwtParser.parseClaimsJws(token).getBody();
-        // TODO: Obtener el rol del token
+
         String role = claims.get("role").toString();
-        // TODO: Crear la lista de autoridades (roles) para el usuario
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
-        // TODO: El principal del contexto de seguridad será el email (subject) extraído del token
-        User principal = new User(claims.getSubject(), "",
-                authorities);
-        // TODO: Crear el objeto de autenticación con los detalles del usuario
+
+        // Create UserPrincipal with minimal information from token
+        UserPrincipal principal = new UserPrincipal();
+        principal.setEmail(claims.getSubject());
+        principal.setAuthorities(authorities);
+
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
-    // TODO: Método para validar el token JWT (si está correctamente firmado y no ha expirado)
+
     public boolean validateToken(String token) {
         try {
-            // TODO: Parsear el token JWT para verificar su validez
             jwtParser.parseClaimsJws(token);
-            return true; // El token es válido
+            return true;
         } catch (JwtException e) {
-            return false; // El token no es válido
+            return false;
         }
     }
 }
