@@ -72,7 +72,7 @@ public class AdminDeveloperController {
         return ResponseEntity.ok(developer);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DEVELOPER')")
     @Operation(summary = "Actualizar desarrollador", description = "Actualiza la información de un desarrollador existente por su UUID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Desarrollador actualizado exitosamente", content = @Content(schema = @Schema(implementation = DeveloperDTO.class), mediaType = "application/json")),
