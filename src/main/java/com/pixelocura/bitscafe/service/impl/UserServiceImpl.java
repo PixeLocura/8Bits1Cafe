@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        boolean nameExists = developerRepository.existsByNameAndUserIdNot(dto.getName(), id);
+        boolean nameExists = developerRepository.existsByNameAndUser_IdNot(dto.getName(), id);
         if (nameExists) {
             throw new IllegalArgumentException("Ya existe un usuario con el mismo nombre");
         }
