@@ -43,18 +43,45 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserProfileDTO registerDeveloper(UserRegistrationDTO dto) {
-        dto.setPassword(passwordEncoder.encode(dto.getPassword()));
-        UserDTO userDTO = userMapper.fromRegistrationDTO(dto);
-        userDTO.setRole(ERole.DEVELOPER);
+        try {
+            if (dto == null) {
+                throw new IllegalArgumentException("Registration data cannot be null");
+            }
 
-        // Crear usuario
-        UserDTO createdUser = adminUserService.create(userDTO);
+            if (dto.getPassword() == null || dto.getPassword().trim().isEmpty()) {
+                throw new IllegalArgumentException("Password cannot be empty");
+            }
 
-        // Recuperar el User completo desde la base de datos (con Role y Developer cargados)
-        User userEntity = userRepository.findById(createdUser.getId())
-                .orElseThrow(() -> new RuntimeException("Usuario creado no encontrado"));
+            // Encrypt password and prepare user data
+            String encodedPassword = passwordEncoder.encode(dto.getPassword());
+            dto.setPassword(encodedPassword);
 
-        return userMapper.toUserProfileDTO(userEntity);
+            UserDTO userDTO = userMapper.fromRegistrationDTO(dto);
+            if (userDTO == null) {
+                throw new RuntimeException("Failed to map registration data to UserDTO");
+            }
+
+            userDTO.setRole(ERole.DEVELOPER);
+
+            try {
+                // Create user
+                UserDTO createdUser = adminUserService.create(userDTO);
+                if (createdUser == null || createdUser.getId() == null) {
+                    throw new RuntimeException("User creation failed - no user data returned");
+                }
+
+                // Retrieve complete User from database
+                User userEntity = userRepository.findById(createdUser.getId())
+                        .orElseThrow(() -> new RuntimeException(String.format(
+                            "Failed to retrieve created user with ID %s", createdUser.getId())));
+
+                return userMapper.toUserProfileDTO(userEntity);
+            } catch (Exception e) {
+                throw new RuntimeException("Error during user creation process: " + e.getMessage(), e);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Registration failed: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -103,22 +130,62 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthResponseDTO login(LoginDTO loginDTO) {
-        // Autenticar al usuario utilizando AuthenticationManager
-        Authentication authentication = authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
+        try {
+            if (loginDTO == null) {
+                throw new IllegalArgumentException("Login data cannot be null");
+            }
+
+            if (loginDTO.getEmail() == null || loginDTO.getEmail().trim().isEmpty()) {
+                throw new IllegalArgumentException("Email cannot be empty");
+            }
+
+            if (loginDTO.getPassword() == null || loginDTO.getPassword().trim().isEmpty()) {
+                throw new IllegalArgumentException("Password cannot be empty");
+            }
+
+            // Authenticate user using AuthenticationManager
+            Authentication authentication;
+            try {
+                authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
                 );
-        // Una vez autenticado, el objeto autentication contiene la informacion del usuario autenticado
-        UserPrincipal userPrincipal = (UserPrincipal)authentication.getPrincipal();
-        User user = userPrincipal.getUser();
-        // Verificar si es un administrador
-        boolean isAdmin = user.getRole().getName().equals(ERole.ADMIN);
-        //String token = "abc123";
-        // Generar el token JWT usando el TokenProvider
-        String token = tokenProvider.createAccessToken(authentication);
-        // Generar la respuesta de autenticación, con el rol correspondiente
-        AuthResponseDTO responseDTO = userMapper.toAuthResponseDTO(user, token);
-        // Retornar la respuesta
-        return responseDTO;
+            } catch (Exception e) {
+                throw new RuntimeException("Authentication failed: " + e.getMessage(), e);
+            }
+
+            // Get authenticated user info
+            if (!(authentication.getPrincipal() instanceof UserPrincipal)) {
+                throw new RuntimeException("Unexpected authentication principal type: " +
+                    authentication.getPrincipal().getClass().getName());
+            }
+
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            User user = userPrincipal.getUser();
+
+            if (user == null) {
+                throw new RuntimeException("No user data found in authentication principal");
+            }
+
+            // Generate JWT token
+            String token;
+            try {
+                token = tokenProvider.createAccessToken(authentication);
+                if (token == null || token.trim().isEmpty()) {
+                    throw new RuntimeException("Token generation failed - empty token returned");
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to generate access token: " + e.getMessage(), e);
+            }
+
+            // Generate authentication response
+            try {
+                return userMapper.toAuthResponseDTO(user, token);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to generate auth response: " + e.getMessage(), e);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Login process failed: " + e.getMessage(), e);
+        }
     }
 
 }
