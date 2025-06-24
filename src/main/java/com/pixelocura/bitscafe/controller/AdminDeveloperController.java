@@ -23,7 +23,6 @@ import java.util.UUID;
 
 @Tag(name = "Developers", description = "API de Gestión de Desarrolladores")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
 @RestController
 @RequestMapping("/developers")
 public class AdminDeveloperController {
@@ -49,6 +48,7 @@ public class AdminDeveloperController {
         return ResponseEntity.ok(developers);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Crear nuevo desarrollador", description = "Crea un nuevo desarrollador en el sistema con la información proporcionada.\nEl nombre del desarrollador debe ser único en el sistema.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Desarrollador creado exitosamente", content = @Content(schema = @Schema(implementation = DeveloperDTO.class), mediaType = "application/json")),
@@ -82,6 +82,7 @@ public class AdminDeveloperController {
         return ResponseEntity.ok(developer);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Actualizar desarrollador", description = "Actualiza la información de un desarrollador existente por su UUID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Desarrollador actualizado exitosamente", content = @Content(schema = @Schema(implementation = DeveloperDTO.class), mediaType = "application/json")),
@@ -94,6 +95,7 @@ public class AdminDeveloperController {
         return ResponseEntity.ok(updatedDeveloper);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar desarrollador", description = "Elimina un desarrollador del sistema por su UUID.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Desarrollador eliminado exitosamente", content = @Content),
