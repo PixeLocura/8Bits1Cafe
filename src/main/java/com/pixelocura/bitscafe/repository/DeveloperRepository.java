@@ -13,4 +13,6 @@ public interface DeveloperRepository extends JpaRepository<Developer, UUID> {
     boolean existsByName(String name);
 
     Page<Developer> findAll(Pageable pageable);
+
+    boolean existsByNameAndUser_IdNot(String name, UUID userId);
 }
