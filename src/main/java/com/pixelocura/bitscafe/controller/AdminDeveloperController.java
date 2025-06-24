@@ -1,6 +1,7 @@
 package com.pixelocura.bitscafe.controller;
 
 import com.pixelocura.bitscafe.dto.DeveloperDTO;
+import com.pixelocura.bitscafe.security.UserPrincipal;
 import com.pixelocura.bitscafe.service.AdminDeveloperService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +16,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -46,18 +48,6 @@ public class AdminDeveloperController {
     public ResponseEntity<Page<DeveloperDTO>> paginate(@PageableDefault(size = 5, sort = "name") Pageable pageable) {
         Page<DeveloperDTO> developers = adminDeveloperService.paginate(pageable);
         return ResponseEntity.ok(developers);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Crear nuevo desarrollador", description = "Crea un nuevo desarrollador en el sistema con la información proporcionada.\nEl nombre del desarrollador debe ser único en el sistema.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Desarrollador creado exitosamente", content = @Content(schema = @Schema(implementation = DeveloperDTO.class), mediaType = "application/json")),
-            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos o ya existe un desarrollador con el mismo nombre", content = @Content)
-    })
-    @PostMapping
-    public ResponseEntity<DeveloperDTO> create(@Valid @RequestBody DeveloperDTO developerDTO) {
-        DeveloperDTO createdDeveloper = adminDeveloperService.create(developerDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdDeveloper);
     }
 
     @Operation(summary = "Obtener desarrollador por ID", description = "Recupera un desarrollador por su UUID.")
@@ -105,5 +95,19 @@ public class AdminDeveloperController {
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         adminDeveloperService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "Create developer profile", description = "Creates a developer profile for the authenticated user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Developer profile created successfully", content = @Content(schema = @Schema(implementation = DeveloperDTO.class), mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "Invalid input or developer profile already exists", content = @Content),
+            @ApiResponse(responseCode = "403", description = "User does not have developer role", content = @Content)
+    })
+    @PostMapping
+    public ResponseEntity<DeveloperDTO> createDeveloperProfile(@Valid @RequestBody DeveloperDTO developerDTO,
+            @AuthenticationPrincipal UserPrincipal userDetails) {
+        DeveloperDTO createdProfile = adminDeveloperService.createDeveloperProfile(developerDTO, userDetails.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdProfile);
     }
 }
