@@ -1,5 +1,6 @@
 package com.pixelocura.bitscafe.dto;
 
+import com.pixelocura.bitscafe.model.enums.Country;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -27,4 +28,6 @@ public class DeveloperDTO {
 
     // Add games list for developer
     private List<GameDTO> games;
+
+    private Country country;
 }

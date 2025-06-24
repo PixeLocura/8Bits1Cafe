@@ -22,6 +22,10 @@ public class DeveloperMapper {
                     .toList();
             dto.setGames(gameDTOs);
         }
+        // Set country from associated user
+        if (developer.getUser() != null) {
+            dto.setCountry(developer.getUser().getCountry());
+        }
         return dto;
     }
 
