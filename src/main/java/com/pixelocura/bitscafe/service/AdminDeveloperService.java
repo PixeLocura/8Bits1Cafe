@@ -25,9 +25,17 @@ public interface AdminDeveloperService {
 
     /**
      * Checks if a user has a developer profile.
-     * 
+     *
      * @param userId the UUID of the user
      * @return true if the user has a developer profile, false otherwise
      */
     boolean hasDeveloperProfile(UUID userId);
+
+    /**
+     * Returns the developer profile ID for a user, or null if none exists.
+     * 
+     * @param userId the UUID of the user
+     * @return the developer profile UUID, or null if not present
+     */
+    UUID getDeveloperProfileId(UUID userId);
 }

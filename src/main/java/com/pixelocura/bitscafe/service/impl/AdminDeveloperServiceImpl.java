@@ -144,4 +144,12 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
                 .map(user -> user.getDeveloperProfile() != null)
                 .orElse(false);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UUID getDeveloperProfileId(UUID userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getDeveloperProfile() != null ? user.getDeveloperProfile().getId() : null)
+                .orElse(null);
+    }
 }
