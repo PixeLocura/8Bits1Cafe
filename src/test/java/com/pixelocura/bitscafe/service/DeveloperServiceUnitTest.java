@@ -5,6 +5,9 @@ import com.pixelocura.bitscafe.mapper.DeveloperMapper;
 import com.pixelocura.bitscafe.model.entity.Developer;
 import com.pixelocura.bitscafe.repository.DeveloperRepository;
 import com.pixelocura.bitscafe.service.impl.AdminDeveloperServiceImpl;
+import com.pixelocura.bitscafe.repository.GameRepository;
+import com.pixelocura.bitscafe.model.entity.Game;
+import com.pixelocura.bitscafe.dto.GameDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +38,9 @@ public class DeveloperServiceUnitTest {
     @Mock
     private DeveloperMapper developerMapper;
 
+    @Mock
+    private GameRepository gameRepository;
+
     @InjectMocks
     private AdminDeveloperServiceImpl developerService;
 
@@ -58,6 +64,21 @@ public class DeveloperServiceUnitTest {
         developerDTO.setId(id);
         developerDTO.setName(name);
         return developerDTO;
+    }
+
+    private Game createGameWithValues(UUID id, String title, Developer developer) {
+        Game game = new Game();
+        game.setId(id);
+        game.setTitle(title);
+        game.setDeveloper(developer);
+        return game;
+    }
+
+    private GameDTO createGameDTOWithValues(UUID id, String title) {
+        GameDTO gameDTO = new GameDTO();
+        gameDTO.setId(id);
+        gameDTO.setTitle(title);
+        return gameDTO;
     }
 
     @Test
@@ -152,7 +173,7 @@ public class DeveloperServiceUnitTest {
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-            () -> developerService.create(developerDTO));
+                () -> developerService.create(developerDTO));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
         assertTrue(exception.getMessage().contains("Developer already exists with name"));
     }
@@ -163,8 +184,15 @@ public class DeveloperServiceUnitTest {
         // Arrange
         Developer developer = createDeveloperWithValues(developerId, developerName);
         DeveloperDTO developerDTO = createDeveloperDTOWithValues(developerId, developerName);
+        List<Game> games = Arrays.asList(createGameWithValues(UUID.randomUUID(), "Game 1", developer),
+                createGameWithValues(UUID.randomUUID(), "Game 2", developer));
+        List<GameDTO> gameDTOs = Arrays.asList(createGameDTOWithValues(UUID.randomUUID(), "Game 1"),
+                createGameDTOWithValues(UUID.randomUUID(), "Game 2"));
+        developer.setGames(games);
+        developerDTO.setGames(gameDTOs);
 
         when(developerRepository.findById(developerId)).thenReturn(Optional.of(developer));
+        when(gameRepository.findByDeveloperId(developerId)).thenReturn(games);
         when(developerMapper.toDTO(developer)).thenReturn(developerDTO);
 
         // Act
@@ -174,6 +202,8 @@ public class DeveloperServiceUnitTest {
         assertNotNull(result);
         assertEquals(developerId, result.getId());
         assertEquals(developerName, result.getName());
+        assertNotNull(result.getGames());
+        assertEquals(gameDTOs.size(), result.getGames().size());
     }
 
     @Test
@@ -184,7 +214,7 @@ public class DeveloperServiceUnitTest {
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-            () -> developerService.findById(developerId));
+                () -> developerService.findById(developerId));
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertTrue(exception.getMessage().contains("Developer not found with id"));
     }
@@ -215,7 +245,7 @@ public class DeveloperServiceUnitTest {
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-            () -> developerService.findByName(developerName));
+                () -> developerService.findByName(developerName));
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertTrue(exception.getMessage().contains("Developer not found with name"));
     }
@@ -253,7 +283,7 @@ public class DeveloperServiceUnitTest {
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-            () -> developerService.update(developerId, updateDTO));
+                () -> developerService.update(developerId, updateDTO));
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertTrue(exception.getMessage().contains("Developer not found with id"));
     }
@@ -273,7 +303,7 @@ public class DeveloperServiceUnitTest {
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-            () -> developerService.update(developerId, updateDTO));
+                () -> developerService.update(developerId, updateDTO));
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
         assertTrue(exception.getMessage().contains("Developer name already taken"));
     }
@@ -299,7 +329,7 @@ public class DeveloperServiceUnitTest {
 
         // Act & Assert
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-            () -> developerService.delete(developerId));
+                () -> developerService.delete(developerId));
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertTrue(exception.getMessage().contains("Developer not found with id"));
     }

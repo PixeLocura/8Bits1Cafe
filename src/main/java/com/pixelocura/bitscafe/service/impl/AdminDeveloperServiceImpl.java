@@ -3,7 +3,10 @@ package com.pixelocura.bitscafe.service.impl;
 import com.pixelocura.bitscafe.dto.DeveloperDTO;
 import com.pixelocura.bitscafe.mapper.DeveloperMapper;
 import com.pixelocura.bitscafe.model.entity.Developer;
+import com.pixelocura.bitscafe.model.entity.User;
 import com.pixelocura.bitscafe.repository.DeveloperRepository;
+import com.pixelocura.bitscafe.repository.GameRepository;
+import com.pixelocura.bitscafe.repository.UserRepository;
 import com.pixelocura.bitscafe.service.AdminDeveloperService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +25,8 @@ import java.util.stream.Collectors;
 public class AdminDeveloperServiceImpl implements AdminDeveloperService {
     private final DeveloperRepository developerRepository;
     private final DeveloperMapper developerMapper;
+    private final GameRepository gameRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -45,7 +50,7 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
         developerRepository.findByName(developerDTO.getName())
                 .ifPresent(developer -> {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Developer already exists with name: " + developerDTO.getName());
+                            "Developer already exists with name: " + developerDTO.getName());
                 });
 
         Developer developer = developerMapper.toEntity(developerDTO);
@@ -58,7 +63,9 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
     public DeveloperDTO findById(UUID id) {
         Developer developer = developerRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Developer not found with id: " + id));
+                        "Developer not found with id: " + id));
+        // Fetch games and set to developer
+        developer.setGames(gameRepository.findByDeveloperId(id));
         return developerMapper.toDTO(developer);
     }
 
@@ -67,7 +74,7 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
     public DeveloperDTO findByName(String name) {
         Developer developer = developerRepository.findByName(name)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Developer not found with name: " + name));
+                        "Developer not found with name: " + name));
         return developerMapper.toDTO(developer);
     }
 
@@ -76,13 +83,13 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
     public DeveloperDTO update(UUID id, DeveloperDTO developerDTO) {
         Developer existingDeveloper = developerRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                    "Developer not found with id: " + id));
+                        "Developer not found with id: " + id));
 
         developerRepository.findByName(developerDTO.getName())
                 .ifPresent(developer -> {
                     if (!developer.getId().equals(id)) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "Developer name already taken: " + developerDTO.getName());
+                                "Developer name already taken: " + developerDTO.getName());
                     }
                 });
 
@@ -96,8 +103,59 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
     public void delete(UUID id) {
         if (!developerRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "Developer not found with id: " + id);
+                    "Developer not found with id: " + id);
         }
         developerRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public DeveloperDTO createDeveloperProfile(DeveloperDTO developerDTO, UUID userId) {
+        // Get the user first to check if exists
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // Check if user already has a developer profile
+        if (user.getDeveloperProfile() != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Developer profile already exists for this user");
+        }
+
+        // Check for duplicate name
+        if (developerRepository.existsByName(developerDTO.getName())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Developer name is already taken: " + developerDTO.getName());
+        }
+
+        Developer developer = developerMapper.toEntity(developerDTO);
+        developer.setUser(user);
+
+        // Set profile picture URL if provided
+        if (developerDTO.getProfilePictureUrl() != null) {
+            developer.setProfilePictureUrl(developerDTO.getProfilePictureUrl());
+        }
+
+        Developer savedDeveloper = developerRepository.save(developer);
+
+        // Update the user's developer profile reference
+        userRepository.updateDeveloperProfile(userId, savedDeveloper.getId());
+
+        return developerMapper.toDTO(savedDeveloper);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasDeveloperProfile(UUID userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getDeveloperProfile() != null)
+                .orElse(false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UUID getDeveloperProfileId(UUID userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getDeveloperProfile() != null ? user.getDeveloperProfile().getId() : null)
+                .orElse(null);
     }
 }

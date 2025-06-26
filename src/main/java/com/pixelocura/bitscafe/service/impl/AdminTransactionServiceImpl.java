@@ -25,21 +25,19 @@ public class AdminTransactionServiceImpl implements AdminTransactionService {
 
     private final TransactionRepository transactionRepository;
     private final TransactionDetailRepository transactionDetailRepository;
-    private UserRepository userRepository; //final? x2
+    private UserRepository userRepository; // final? x2
     private GameRepository gameRepository;
 
     public AdminTransactionServiceImpl(
             TransactionRepository transactionRepository,
             TransactionDetailRepository transactionDetailRepository,
             UserRepository userRepository,
-            GameRepository gameRepository
-    ) {
+            GameRepository gameRepository) {
         this.transactionRepository = transactionRepository;
         this.transactionDetailRepository = transactionDetailRepository;
         this.userRepository = userRepository;
         this.gameRepository = gameRepository;
     }
-
 
     @Override
     public List<TransactionDTO> getTransactionsByUser(UUID userId) {
@@ -52,7 +50,6 @@ public class AdminTransactionServiceImpl implements AdminTransactionService {
         List<TransactionDetail> details = transactionDetailRepository.findByTransactionId(transactionId);
         return TransactionMapper.toTransactionDetailDTOList(details);
     }
-
 
     @Override
     @Transactional
@@ -95,5 +92,37 @@ public class AdminTransactionServiceImpl implements AdminTransactionService {
         return transactionRepository.findAll().stream()
                 .map(TransactionMapper::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public TransactionDTO createTransactionForUserAndGames(UUID userId, List<UUID> gameIds) {
+        // Find user by ID
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + userId));
+
+        // Fetch games by IDs
+        List<Game> games = gameRepository.findAllById(gameIds);
+        if (games.size() != gameIds.size()) {
+            throw new IllegalArgumentException("Uno o más juegos no existen");
+        }
+
+        // Create transaction and details
+        Transaction transaction = new Transaction();
+        transaction.setUser(user);
+        // Details and total price will be set below
+
+        List<TransactionDetail> details = games.stream().map(game -> {
+            TransactionDetail detail = new TransactionDetail();
+            detail.setTransaction(transaction);
+            detail.setGame(game);
+            detail.setPrice(game.getPrice());
+            return detail;
+        }).collect(Collectors.toList());
+        transaction.setDetails(details);
+        // totalPrice and transactionDate set by @PrePersist
+
+        Transaction saved = transactionRepository.save(transaction);
+        return TransactionMapper.toDTO(saved);
     }
 }
