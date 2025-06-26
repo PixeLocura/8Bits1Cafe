@@ -6,6 +6,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -54,5 +55,18 @@ public class GlobalExceptionHandler {
         body.put("message", ex.getMessage());
 
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Object> handleResponseStatusException(ResponseStatusException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", ZonedDateTime.now());
+        body.put("status", ex.getStatusCode().value());
+        String reasonPhrase = (ex.getStatusCode() instanceof org.springframework.http.HttpStatus)
+                ? ((org.springframework.http.HttpStatus) ex.getStatusCode()).getReasonPhrase()
+                : ex.getStatusCode().toString();
+        body.put("error", reasonPhrase);
+        body.put("message", ex.getReason());
+        return new ResponseEntity<>(body, ex.getStatusCode());
     }
 }
