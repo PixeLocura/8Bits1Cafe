@@ -37,6 +37,9 @@ public class Developer {
     @OneToMany(mappedBy = "developer")
     private List<Game> games;
 
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
     @PrePersist
     public void prePersist() {
         this.creationDate = ZonedDateTime.now(ZoneOffset.UTC);

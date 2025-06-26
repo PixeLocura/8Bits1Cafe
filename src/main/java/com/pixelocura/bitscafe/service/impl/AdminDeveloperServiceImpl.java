@@ -129,6 +129,12 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
 
         Developer developer = developerMapper.toEntity(developerDTO);
         developer.setUser(user);
+
+        // Set profile picture URL if provided
+        if (developerDTO.getProfilePictureUrl() != null) {
+            developer.setProfilePictureUrl(developerDTO.getProfilePictureUrl());
+        }
+
         Developer savedDeveloper = developerRepository.save(developer);
 
         // Update the user's developer profile reference

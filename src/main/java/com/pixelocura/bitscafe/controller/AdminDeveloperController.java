@@ -98,7 +98,7 @@ public class AdminDeveloperController {
     }
 
     @PreAuthorize("hasRole('DEVELOPER')")
-    @Operation(summary = "Create developer profile", description = "Creates a developer profile for the authenticated user")
+    @Operation(summary = "Create developer profile", description = "Creates a developer profile for the authenticated user, including a profile picture URL.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Developer profile created successfully", content = @Content(schema = @Schema(implementation = DeveloperDTO.class), mediaType = "application/json")),
             @ApiResponse(responseCode = "400", description = "Invalid input or developer profile already exists", content = @Content),

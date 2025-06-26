@@ -27,6 +27,8 @@ public class DeveloperMapper {
         if (developer.getUser() != null) {
             dto.setCountry(developer.getUser().getCountry());
         }
+        // profilePictureUrl is mapped automatically by ModelMapper if present in both
+        // DTO and entity
         return dto;
     }
 

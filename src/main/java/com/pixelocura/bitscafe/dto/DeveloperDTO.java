@@ -30,4 +30,7 @@ public class DeveloperDTO {
     private List<GameDTO> games;
 
     private Country country;
+
+    @URL(message = "Profile picture must be a valid URL")
+    private String profilePictureUrl;
 }
