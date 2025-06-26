@@ -110,4 +110,20 @@ public class AdminDeveloperController {
         DeveloperDTO createdProfile = adminDeveloperService.createDeveloperProfile(developerDTO, userDetails.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProfile);
     }
+
+    @PreAuthorize("hasRole('DEVELOPER')")
+    @Operation(summary = "Verificar perfil de desarrollador", description = "Verifica si el usuario autenticado tiene un perfil de desarrollador.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "El usuario tiene un perfil de desarrollador", content = @Content),
+            @ApiResponse(responseCode = "404", description = "El usuario no tiene un perfil de desarrollador", content = @Content)
+    })
+    @GetMapping("/me/exists")
+    public ResponseEntity<Void> hasDeveloperProfile(@AuthenticationPrincipal UserPrincipal userDetails) {
+        boolean exists = adminDeveloperService.hasDeveloperProfile(userDetails.getId());
+        if (exists) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 }

@@ -22,4 +22,12 @@ public interface AdminDeveloperService {
     void delete(UUID id);
 
     DeveloperDTO createDeveloperProfile(DeveloperDTO developerDTO, UUID userId);
+
+    /**
+     * Checks if a user has a developer profile.
+     * 
+     * @param userId the UUID of the user
+     * @return true if the user has a developer profile, false otherwise
+     */
+    boolean hasDeveloperProfile(UUID userId);
 }

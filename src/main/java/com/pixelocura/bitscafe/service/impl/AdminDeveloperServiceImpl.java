@@ -136,4 +136,12 @@ public class AdminDeveloperServiceImpl implements AdminDeveloperService {
 
         return developerMapper.toDTO(savedDeveloper);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean hasDeveloperProfile(UUID userId) {
+        return userRepository.findById(userId)
+                .map(user -> user.getDeveloperProfile() != null)
+                .orElse(false);
+    }
 }
