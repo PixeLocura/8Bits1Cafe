@@ -12,5 +12,5 @@ public interface DeveloperRepository extends JpaRepository<Developer, UUID> {
     boolean existsByName(String name);
     Page<Developer> findAll(Pageable pageable);
     //Metodo para verificar si ya existe un developer con el mismo nombre, excepto el usuario actual
-    boolean existsByNameAndUserIdNot(String name, UUID userId);
+    boolean existsByNameAndUser_IdNot(String name, UUID userId);
 }
