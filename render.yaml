@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: bits-app
+    env: docker
+    plan: free
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: DB_URL
+        value: jdbc:postgresql://bits-db:5432/${DB_NAME}
+      - key: DB_USERNAME
+        value: ${DB_USER}
+      - key: DB_PASSWORD
+        value: ${DB_PASSWORD}
+      - key: SPRING_SQL_INIT_DATA_LOCATIONS
+        value: file:/app/sql/init.sql
+      - key: JWT_SECRET
+        value: ${JWT_SECRET}
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: SPRING_JPA_SHOW_SQL
+        value: "true"
+      - key: SPRING_SQL_INIT_MODE
+        value: always
+      - key: SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION
+        value: "true"
+      - key: SPRING_SQL_INIT_PLATFORM
+        value: postgresql
+      - key: SPRING_JPA_DATABASE_PLATFORM
+        value: org.hibernate.dialect.PostgreSQLDialect
+
+  - type: pserv
+    name: bits-db
+    env: docker
+    plan: free
+    image: postgres:15-alpine
+    envVars:
+      - key: POSTGRES_DB
+        value: ${DB_NAME}
+      - key: POSTGRES_USER
+        value: ${DB_USER}
+      - key: POSTGRES_PASSWORD
+        value: ${DB_PASSWORD}

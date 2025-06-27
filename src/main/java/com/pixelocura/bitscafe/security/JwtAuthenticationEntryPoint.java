@@ -24,7 +24,7 @@ public class JwtAuthenticationEntryPoint implements
         // TODO: Obtener el mensaje de error si es que existe, de lo contrario establecer un mensaje por defecto
         String exceptionMsg = (String) request.getAttribute("exception");
         if (exceptionMsg == null) {
-            exceptionMsg = "Token not found or invalid"; // Mensaje de error por defecto
+            exceptionMsg = "Debes iniciar sesión para acceder a este recurso"; // Mensaje de error por defecto
         }
 
         // TODO: Crear un objeto de error personalizado con la fecha, mensaje de error y la URI de la solicitud
