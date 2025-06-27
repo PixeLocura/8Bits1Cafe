@@ -1,6 +1,7 @@
 package com.pixelocura.bitscafe.security;
 
 import com.pixelocura.bitscafe.model.entity.User;
+import com.pixelocura.bitscafe.repository.RoleRepository;
 import com.pixelocura.bitscafe.repository.UserRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final TokenProvider tokenProvider;
 
     @Override
@@ -57,10 +59,11 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             newUser.setCountry(com.pixelocura.bitscafe.model.enums.Country.PE);
             System.out.println(
                     "[OAuth2LoginSuccessHandler] Set country to: " + com.pixelocura.bitscafe.model.enums.Country.PE);
-            com.pixelocura.bitscafe.model.entity.Role developerRole = new com.pixelocura.bitscafe.model.entity.Role();
-            developerRole.setName(com.pixelocura.bitscafe.model.enums.ERole.DEVELOPER);
+            // Fetch DEVELOPER role from DB
+            com.pixelocura.bitscafe.model.entity.Role developerRole = roleRepository.findByName(com.pixelocura.bitscafe.model.enums.ERole.DEVELOPER)
+                .orElseThrow(() -> new RuntimeException("DEVELOPER role not found in DB"));
             newUser.setRole(developerRole);
-            System.out.println("[OAuth2LoginSuccessHandler] Assigned DEVELOPER role");
+            System.out.println("[OAuth2LoginSuccessHandler] Assigned DEVELOPER role from DB");
             User saved = userRepository.save(newUser);
             System.out.println("[OAuth2LoginSuccessHandler] New user saved with ID: " + saved.getId());
             return saved;
