@@ -42,6 +42,9 @@ services:
             JWT_SECRET: ${JWT_SECRET:-chLhMF9w3mwDutysbQxsX8x4CGwZef4mayTGSmbAG2BUsXbYFKvXrVfnPCa62PJxp9TuHxx4PQAS2yGUTBAPy3Dy53j8Uj2wb2AQ3nK8VLg7tUx9HCzHATEp}
             BITSCAFE_OPENAPI_DEV_URL: ${BITSCAFE_OPENAPI_DEV_URL:-http://localhost:8080/api/v1/}
             BITSCAFE_OPENAPI_PROD_URL: ${BITSCAFE_OPENAPI_PROD_URL:-https://eightbits1cafe.onrender.com/api/v1/}
+            GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+            GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+
 
 volumes:
     db-data:
