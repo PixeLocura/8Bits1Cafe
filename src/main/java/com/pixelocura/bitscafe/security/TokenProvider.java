@@ -76,18 +76,33 @@ public class TokenProvider {
 
     public Authentication getAuthentication(String token) {
         Claims claims = jwtParser.parseClaimsJws(token).getBody();
-
+    
+        System.out.println("=== JWT DEBUG ===");
+        System.out.println("Claims: " + claims);
+        System.out.println("Subject: " + claims.getSubject());
+        System.out.println("Role: " + claims.get("role"));
+        System.out.println("userId raw: " + claims.get("userId"));
+    
         String role = claims.get("role").toString();
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
-
-        // Create UserPrincipal with information from token
+    
+        String userId = claims.get("userId", String.class);
+        if (userId == null) {
+            System.out.println(" userId ES NULL ");
+            throw new RuntimeException("El token no contiene 'userId'");
+        }
+    
+        System.out.println("userId OK: " + userId);
+    
         UserPrincipal principal = new UserPrincipal();
-        principal.setId(UUID.fromString(claims.get("userId", String.class)));
+        principal.setId(UUID.fromString(userId));
         principal.setEmail(claims.getSubject());
         principal.setAuthorities(authorities);
-
+    
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
+
+
 
     public boolean validateToken(String token) {
         try {
