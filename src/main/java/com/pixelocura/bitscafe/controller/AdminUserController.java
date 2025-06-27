@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -28,6 +29,7 @@ import java.util.UUID;
 public class AdminUserController {
     private final AdminUserService adminUserService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Listar todos los usuarios", description = "Obtiene una lista de todos los usuarios en el sistema.\nDevuelve todos los objetos Usuario con sus atributos."
     // tags = {"users", "list"}
     )
@@ -40,6 +42,7 @@ public class AdminUserController {
         return ResponseEntity.ok(users);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Obtener usuarios paginados", description = "Obtiene una lista paginada de usuarios.\nTamaño de página predeterminado: 5, ordenado por nombre de usuario."
     // tags = {"users", "pagination"}
     )
@@ -52,6 +55,7 @@ public class AdminUserController {
         return ResponseEntity.ok(users);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Crear nuevo usuario", description = "Crea un nuevo usuario en el sistema con la información proporcionada."
     // tags = {"users", "create"}
     )
@@ -65,6 +69,7 @@ public class AdminUserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Obtener usuario por ID", description = "Recupera un usuario por su UUID."
     // tags = {"users", "get"}
     )
@@ -78,6 +83,7 @@ public class AdminUserController {
         return ResponseEntity.ok(user);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Obtener usuario por nombre de usuario", description = "Recupera un usuario por su nombre de usuario."
     // tags = {"users", "get"}
     )
@@ -91,6 +97,7 @@ public class AdminUserController {
         return ResponseEntity.ok(user);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Obtener usuario por correo electrónico", description = "Recupera un usuario por su dirección de correo electrónico."
     // tags = {"users", "get"}
     )
@@ -104,6 +111,7 @@ public class AdminUserController {
         return ResponseEntity.ok(user);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isCurrentUser(#id)")
     @Operation(summary = "Actualizar usuario", description = "Actualiza la información de un usuario existente por su UUID."
     // tags = {"users", "update"}
     )
@@ -118,6 +126,7 @@ public class AdminUserController {
         return ResponseEntity.ok(updatedUser);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Eliminar usuario", description = "Elimina un usuario del sistema por su UUID."
     // tags = {"users", "delete"}
     )

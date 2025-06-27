@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -32,6 +33,12 @@ public class Developer {
 
     @Column(name = "update_date")
     private ZonedDateTime updateDate;
+
+    @OneToMany(mappedBy = "developer")
+    private List<Game> games;
+
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
 
     @PrePersist
     public void prePersist() {

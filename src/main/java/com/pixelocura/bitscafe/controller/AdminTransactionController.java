@@ -3,6 +3,7 @@ package com.pixelocura.bitscafe.controller;
 import com.pixelocura.bitscafe.dto.TransactionDTO;
 import com.pixelocura.bitscafe.dto.TransactionDetailDTO;
 import com.pixelocura.bitscafe.service.AdminTransactionService;
+import com.pixelocura.bitscafe.security.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,8 +44,7 @@ public class AdminTransactionController {
 
     @Operation(summary = "Crear una nueva transacción", description = "Registra una nueva transacción en la plataforma.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Transacción creada exitosamente",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = TransactionDTO.class)))
+            @ApiResponse(responseCode = "200", description = "Transacción creada exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = TransactionDTO.class)))
     })
     @PostMapping
     public ResponseEntity<TransactionDTO> createTransaction(@RequestBody TransactionDTO transactionDTO) {
@@ -82,5 +83,19 @@ public class AdminTransactionController {
     public ResponseEntity<List<TransactionDTO>> getAllTransactions() {
         List<TransactionDTO> list = adminTransactionService.getAllTransactions();
         return ResponseEntity.ok(list);
+    }
+
+    @Operation(summary = "Crear transacción de juegos para usuario autenticado", description = "Crea una transacción para el usuario autenticado usando una lista de IDs de juegos.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Transacción creada exitosamente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = TransactionDTO.class))),
+            @ApiResponse(responseCode = "401", description = "No autorizado")
+    })
+    @PostMapping("/games")
+    public ResponseEntity<TransactionDTO> createTransactionForGames(
+            @RequestBody List<UUID> gameIds,
+            @AuthenticationPrincipal UserPrincipal userDetails) {
+        UUID userId = userDetails.getId();
+        TransactionDTO created = adminTransactionService.createTransactionForUserAndGames(userId, gameIds);
+        return ResponseEntity.ok(created);
     }
 }
