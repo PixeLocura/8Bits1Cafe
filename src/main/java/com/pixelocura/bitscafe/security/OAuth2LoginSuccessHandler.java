@@ -37,6 +37,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         System.out.println("[OAuth2LoginSuccessHandler] OAuth2 login attempt for email: " + email);
         System.out.println("[OAuth2LoginSuccessHandler] OIDC name: " + name);
+        System.out.println("[OAuth2LoginSuccessHandler] OIDC raw attributes: " + oidcUser.getAttributes());
         // Find or create user
         Optional<User> userOpt = userRepository.findByEmail(email);
         System.out.println("[OAuth2LoginSuccessHandler] User found in DB: " + userOpt.isPresent());
@@ -45,23 +46,27 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             User newUser = new User();
             newUser.setEmail(email);
             newUser.setName(name);
-            // Try to parse lastname from name (assume last word is lastname)
+            // Username: use part before @ and remove invalid chars
+            String usernameCandidate = email != null ? email.split("@")[0].replaceAll("[^a-zA-Z0-9_-]", "") : "user";
+            System.out.println("[OAuth2LoginSuccessHandler] Username candidate before validation: " + usernameCandidate);
+            newUser.setUsername(usernameCandidate);
+            // Lastname: use parsed or default to 'Google' if too short
             String[] nameParts = name != null ? name.trim().split(" ") : new String[] { "" };
-            if (nameParts.length > 1) {
-                newUser.setLastname(nameParts[nameParts.length - 1]);
-                System.out.println("[OAuth2LoginSuccessHandler] Parsed lastname: " + nameParts[nameParts.length - 1]);
-            } else {
-                newUser.setLastname("");
-                System.out.println("[OAuth2LoginSuccessHandler] No lastname found, set to empty string");
-            }
-            newUser.setUsername(email);
+            System.out.println("[OAuth2LoginSuccessHandler] Name parts: " + java.util.Arrays.toString(nameParts));
+            String lastname = (nameParts.length > 1) ? nameParts[nameParts.length - 1] : "Google";
+            if (lastname.length() < 2) lastname = "Google";
+            newUser.setLastname(lastname);
+            System.out.println("[OAuth2LoginSuccessHandler] Final username: " + usernameCandidate);
+            System.out.println("[OAuth2LoginSuccessHandler] Final lastname: " + lastname);
             newUser.setPasswordHash("oauth2-google");
             newUser.setCountry(com.pixelocura.bitscafe.model.enums.Country.PE);
             System.out.println(
                     "[OAuth2LoginSuccessHandler] Set country to: " + com.pixelocura.bitscafe.model.enums.Country.PE);
             // Fetch DEVELOPER role from DB
+            System.out.println("[OAuth2LoginSuccessHandler] Fetching DEVELOPER role from DB");
             com.pixelocura.bitscafe.model.entity.Role developerRole = roleRepository.findByName(com.pixelocura.bitscafe.model.enums.ERole.DEVELOPER)
                 .orElseThrow(() -> new RuntimeException("DEVELOPER role not found in DB"));
+            System.out.println("[OAuth2LoginSuccessHandler] DEVELOPER role entity: " + developerRole);
             newUser.setRole(developerRole);
             System.out.println("[OAuth2LoginSuccessHandler] Assigned DEVELOPER role from DB");
             User saved = userRepository.save(newUser);
@@ -69,13 +74,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             return saved;
         });
         System.out.println("[OAuth2LoginSuccessHandler] Using user ID: " + user.getId());
+        System.out.println("[OAuth2LoginSuccessHandler] User entity: " + user);
         // Create a UserPrincipal for JWT
         UserPrincipal principal = new UserPrincipal();
         principal.setId(user.getId());
         principal.setEmail(user.getEmail());
         principal.setUser(user);
         principal.setAuthorities(getAuthoritiesForUser(user));
-        System.out.println("[OAuth2LoginSuccessHandler] UserPrincipal created for JWT");
+        System.out.println("[OAuth2LoginSuccessHandler] UserPrincipal created for JWT: " + principal);
         // Generate JWT
         String jwt = tokenProvider.createAccessToken(
                 new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(principal, null,
