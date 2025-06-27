@@ -36,26 +36,36 @@ public class JWTFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-        String path = httpServletRequest.getRequestURI();
-
-        // ✅ Si es una ruta pública, saltarse la verificación del token
-        if (isExcluded(path)) {
-            chain.doFilter(request, response);
-            return;
-        }
-
-        String bearerToken = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
-
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            String token = bearerToken.substring(7);
-            if (tokenProvider.validateToken(token)) { // 🔒 Verifica el token
-                Authentication authentication = tokenProvider.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                HttpServletRequest httpServletRequest = (HttpServletRequest) request;
+            String path = httpServletRequest.getRequestURI();
+        
+            if (isExcluded(path)) {
+                chain.doFilter(request, response);
+                return;
             }
-        }
-
-        chain.doFilter(request, response);
+        
+            String bearerToken = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+        
+            System.out.println("=== JWTFilter DEBUG ===");
+            System.out.println("Request path: " + path);
+            System.out.println("Header Authorization: " + bearerToken);
+        
+            if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+                String token = bearerToken.substring(7);
+                System.out.println("Resolved Token: " + token);
+        
+                if (tokenProvider.validateToken(token)) {
+                    System.out.println("Token is valid");
+                    Authentication authentication = tokenProvider.getAuthentication(token);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    System.out.println("Token is INVALID");
+                }
+            } else {
+                System.out.println("Bearer Token missing or malformed");
+            }
+        
+            chain.doFilter(request, response);
     }
 
     private boolean isExcluded(String path) {
