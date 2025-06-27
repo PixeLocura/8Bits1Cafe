@@ -20,7 +20,7 @@ services:
     app:
         build: .
         container_name: bits-app
-        restart: on-failure
+        restart: unless-stopped
         depends_on:
             db:
                 condition: service_healthy
