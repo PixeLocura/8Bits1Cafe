@@ -25,15 +25,14 @@ public class User {
     @Column(nullable = false)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash", nullable = true)
     private String passwordHash;
 
     @Size(min = 2, max = 50)
     @Column(nullable = false)
     private String name;
 
-    @Size(min = 2, max = 50)
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String lastname;
 
     @Size(min = 3, max = 30)
