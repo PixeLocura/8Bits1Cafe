@@ -32,11 +32,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             Authentication authentication) throws IOException, ServletException {
         OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
         OidcUser oidcUser = (OidcUser) oauthToken.getPrincipal();
-        // Pretty-print all OIDC attributes from Google for debug/analysis
+        // Print all OIDC attributes in pretty JSON for debug/analysis
         try {
-            String prettyJson = new com.fasterxml.jackson.databind.ObjectMapper()
-                .writerWithDefaultPrettyPrinter()
-                .writeValueAsString(oidcUser.getAttributes());
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+            String prettyJson = mapper.writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(oidcUser.getAttributes());
             System.out.println("[OAuth2LoginSuccessHandler] OIDC attributes (pretty JSON):\n" + prettyJson);
         } catch (Exception e) {
             System.out.println("[OAuth2LoginSuccessHandler] Failed to pretty-print OIDC attributes: " + e);
@@ -56,13 +57,15 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             newUser.setName(name);
             // Username: use part before @ and remove invalid chars
             String usernameCandidate = email != null ? email.split("@")[0].replaceAll("[^a-zA-Z0-9_-]", "") : "user";
-            System.out.println("[OAuth2LoginSuccessHandler] Username candidate before validation: " + usernameCandidate);
+            System.out
+                    .println("[OAuth2LoginSuccessHandler] Username candidate before validation: " + usernameCandidate);
             newUser.setUsername(usernameCandidate);
             // Lastname: use parsed or default to 'Google' if too short
             String[] nameParts = name != null ? name.trim().split(" ") : new String[] { "" };
             System.out.println("[OAuth2LoginSuccessHandler] Name parts: " + java.util.Arrays.toString(nameParts));
             String lastname = (nameParts.length > 1) ? nameParts[nameParts.length - 1] : "Google";
-            if (lastname.length() < 2) lastname = "Google";
+            if (lastname.length() < 2)
+                lastname = "Google";
             newUser.setLastname(lastname);
             System.out.println("[OAuth2LoginSuccessHandler] Final username: " + usernameCandidate);
             System.out.println("[OAuth2LoginSuccessHandler] Final lastname: " + lastname);
@@ -72,8 +75,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                     "[OAuth2LoginSuccessHandler] Set country to: " + com.pixelocura.bitscafe.model.enums.Country.PE);
             // Fetch DEVELOPER role from DB
             System.out.println("[OAuth2LoginSuccessHandler] Fetching DEVELOPER role from DB");
-            com.pixelocura.bitscafe.model.entity.Role developerRole = roleRepository.findByName(com.pixelocura.bitscafe.model.enums.ERole.DEVELOPER)
-                .orElseThrow(() -> new RuntimeException("DEVELOPER role not found in DB"));
+            com.pixelocura.bitscafe.model.entity.Role developerRole = roleRepository
+                    .findByName(com.pixelocura.bitscafe.model.enums.ERole.DEVELOPER)
+                    .orElseThrow(() -> new RuntimeException("DEVELOPER role not found in DB"));
             System.out.println("[OAuth2LoginSuccessHandler] DEVELOPER role entity: " + developerRole);
             newUser.setRole(developerRole);
             System.out.println("[OAuth2LoginSuccessHandler] Assigned DEVELOPER role from DB");
