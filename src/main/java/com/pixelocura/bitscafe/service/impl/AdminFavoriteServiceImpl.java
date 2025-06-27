@@ -46,10 +46,29 @@ public class AdminFavoriteServiceImpl implements AdminFavoriteService {
     }
 
     @Override
-    public List<FavoriteDTO> getFavorites(UUID userId) {
-        return favoriteRepository.findByUser_Id(userId)
-                .stream()
-                .map(FavoriteMapper::toDTO)
-                .toList();
+public List<FavoriteDTO> getFavorites(UUID userId) {
+    List<Favorite> favorites = favoriteRepository.findByUserId(userId);
+
+    List<FavoriteDTO> dtos = new ArrayList<>();
+
+    for (Favorite favorite : favorites) {
+        Game game = favorite.getGame();
+
+        FavoriteDTO dto = new FavoriteDTO();
+        dto.setUserId(userId);
+        dto.setGameId(game.getId());
+        dto.setTitle(game.getTitle());
+        dto.setDeveloper(game.getDeveloper());
+        dto.setCoverImage(game.getCoverImage());
+        dto.setRating(game.getRating());
+        dto.setCategories(game.getCategories());
+        dto.setPlatforms(game.getPlatforms());
+        dto.setPrice(game.getPrice());
+
+        dtos.add(dto);
     }
+
+    return dtos;
+}
+
 }
