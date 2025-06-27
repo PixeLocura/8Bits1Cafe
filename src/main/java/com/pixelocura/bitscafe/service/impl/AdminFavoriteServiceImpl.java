@@ -47,7 +47,7 @@ public class AdminFavoriteServiceImpl implements AdminFavoriteService {
 
     @Override
 public List<FavoriteDTO> getFavorites(UUID userId) {
-    List<Favorite> favorites = favoriteRepository.findByUserId(userId);
+    List<Favorite> favorites = favoriteRepository.findByUser_Id(userId);
 
     List<FavoriteDTO> dtos = new ArrayList<>();
 
