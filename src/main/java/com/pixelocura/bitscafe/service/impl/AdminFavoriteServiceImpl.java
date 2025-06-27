@@ -46,7 +46,7 @@ public class AdminFavoriteServiceImpl implements AdminFavoriteService {
         favoriteRepository.deleteByUser_IdAndGame_Id(userId, gameId);
     }
 
-    @Override
+@Override
 public List<FavoriteDTO> getFavorites(UUID userId) {
     List<Favorite> favorites = favoriteRepository.findByUser_Id(userId);
 
@@ -59,11 +59,8 @@ public List<FavoriteDTO> getFavorites(UUID userId) {
         dto.setUserId(userId);
         dto.setGameId(game.getId());
         dto.setTitle(game.getTitle());
-        dto.setDeveloper(game.getDeveloper());
-        dto.setCoverImage(game.getCoverImage());
-        dto.setRating(game.getRating());
-        dto.setCategories(game.getCategories());
-        dto.setPlatforms(game.getPlatforms());
+        dto.setDeveloperName(game.getDeveloper().getName());
+        dto.setCoverUrl(game.getCoverUrl());
         dto.setPrice(game.getPrice());
 
         dtos.add(dto);
@@ -71,5 +68,6 @@ public List<FavoriteDTO> getFavorites(UUID userId) {
 
     return dtos;
 }
+
 
 }
