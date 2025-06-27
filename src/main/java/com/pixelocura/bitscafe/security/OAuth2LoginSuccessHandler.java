@@ -32,12 +32,20 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             Authentication authentication) throws IOException, ServletException {
         OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
         OidcUser oidcUser = (OidcUser) oauthToken.getPrincipal();
+        // Pretty-print all OIDC attributes from Google for debug/analysis
+        try {
+            String prettyJson = new com.fasterxml.jackson.databind.ObjectMapper()
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(oidcUser.getAttributes());
+            System.out.println("[OAuth2LoginSuccessHandler] OIDC attributes (pretty JSON):\n" + prettyJson);
+        } catch (Exception e) {
+            System.out.println("[OAuth2LoginSuccessHandler] Failed to pretty-print OIDC attributes: " + e);
+        }
         String email = oidcUser.getEmail();
         String name = oidcUser.getFullName();
 
         System.out.println("[OAuth2LoginSuccessHandler] OAuth2 login attempt for email: " + email);
         System.out.println("[OAuth2LoginSuccessHandler] OIDC name: " + name);
-        System.out.println("[OAuth2LoginSuccessHandler] OIDC raw attributes: " + oidcUser.getAttributes());
         // Find or create user
         Optional<User> userOpt = userRepository.findByEmail(email);
         System.out.println("[OAuth2LoginSuccessHandler] User found in DB: " + userOpt.isPresent());
