@@ -1,4 +1,3 @@
-// TransactionServiceImpl.java
 package com.pixelocura.bitscafe.service.impl;
 
 import com.pixelocura.bitscafe.dto.TransactionDTO;
@@ -9,13 +8,13 @@ import com.pixelocura.bitscafe.model.entity.Transaction;
 import com.pixelocura.bitscafe.model.entity.TransactionDetail;
 import com.pixelocura.bitscafe.model.entity.User;
 import com.pixelocura.bitscafe.repository.GameRepository;
-import com.pixelocura.bitscafe.repository.TransactionDetailRepository;
 import com.pixelocura.bitscafe.repository.TransactionRepository;
 import com.pixelocura.bitscafe.repository.UserRepository;
 import com.pixelocura.bitscafe.service.AdminTransactionService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -24,66 +23,77 @@ import java.util.stream.Collectors;
 public class AdminTransactionServiceImpl implements AdminTransactionService {
 
     private final TransactionRepository transactionRepository;
-    private final TransactionDetailRepository transactionDetailRepository;
-    private UserRepository userRepository; // final? x2
-    private GameRepository gameRepository;
+    private final GameRepository gameRepository;
+    private final UserRepository userRepository;
 
     public AdminTransactionServiceImpl(
             TransactionRepository transactionRepository,
-            TransactionDetailRepository transactionDetailRepository,
-            UserRepository userRepository,
-            GameRepository gameRepository) {
+            GameRepository gameRepository,
+            UserRepository userRepository
+    ) {
         this.transactionRepository = transactionRepository;
-        this.transactionDetailRepository = transactionDetailRepository;
-        this.userRepository = userRepository;
         this.gameRepository = gameRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     public List<TransactionDTO> getTransactionsByUser(UUID userId) {
-        List<Transaction> transactions = transactionRepository.findByUserId(userId);
-        return TransactionMapper.toTransactionDTOList(transactions);
+        return transactionRepository.findByUserId(userId)
+                .stream()
+                .map(TransactionMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<TransactionDetailDTO> getTransactionDetails(UUID transactionId) {
-        List<TransactionDetail> details = transactionDetailRepository.findByTransactionId(transactionId);
-        return TransactionMapper.toTransactionDetailDTOList(details);
+        return transactionRepository.findById(transactionId)
+                .orElseThrow(() -> new RuntimeException("Transaction not found"))
+                .getDetails()
+                .stream()
+                .map(TransactionMapper::toDetailDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public TransactionDTO createTransaction(TransactionDTO transactionDTO) {
-        Transaction transaction = new Transaction();
-
+        // Validar y obtener usuario
         User user = userRepository.findById(transactionDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        transaction.setUser(user);
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-        // Mapeamos detalles
-        List<TransactionDetail> details = transactionDTO.getDetails().stream()
-                .map(detailDTO -> {
-                    TransactionDetail detail = new TransactionDetail();
-                    detail.setTransaction(transaction); // asignamos la misma transacción
-                    Game game = gameRepository.findById(detailDTO.getGameId())
-                            .orElseThrow(() -> new RuntimeException("Game not found"));
-                    detail.setGame(game);
-                    detail.setPrice(detailDTO.getPrice());
-                    return detail;
-                }).collect(Collectors.toList());
+        // Crear entidad transacción
+        Transaction transaction = new Transaction();
+        transaction.setUser(user);
+        transaction.setTransactionDate(ZonedDateTime.now());
+
+        // Mapear detalles y vincular juegos
+        List<TransactionDetail> details = transactionDTO.getDetails().stream().map(detailDTO -> {
+            Game game = gameRepository.findById(detailDTO.getGameId())
+                    .orElseThrow(() -> new IllegalArgumentException("Juego no encontrado: " + detailDTO.getGameId()));
+
+            TransactionDetail detail = new TransactionDetail();
+            detail.setTransaction(transaction);
+            detail.setGame(game);
+            detail.setPrice(detailDTO.getPrice());
+            return detail;
+        }).collect(Collectors.toList());
 
         transaction.setDetails(details);
 
-        // totalPrice y transactionDate se calculan en @PrePersist
+        // Calcular total
+        double total = details.stream().mapToDouble(TransactionDetail::getPrice).sum();
+        transaction.setTotalPrice(total);
 
-        Transaction savedTransaction = transactionRepository.save(transaction);
-        return TransactionMapper.toDTO(savedTransaction);
+        // Guardar en cascada
+        Transaction saved = transactionRepository.save(transaction);
+
+        return TransactionMapper.toDTO(saved);
     }
 
     @Override
     public TransactionDTO getTransactionById(UUID id) {
         Transaction transaction = transactionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                .orElseThrow(() -> new RuntimeException("Transacción no encontrada"));
         return TransactionMapper.toDTO(transaction);
     }
 
@@ -97,20 +107,17 @@ public class AdminTransactionServiceImpl implements AdminTransactionService {
     @Override
     @Transactional
     public TransactionDTO createTransactionForUserAndGames(UUID userId, List<UUID> gameIds) {
-        // Find user by ID
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
-        // Fetch games by IDs
         List<Game> games = gameRepository.findAllById(gameIds);
         if (games.size() != gameIds.size()) {
             throw new IllegalArgumentException("Uno o más juegos no existen");
         }
 
-        // Create transaction and details
         Transaction transaction = new Transaction();
         transaction.setUser(user);
-        // Details and total price will be set below
+        transaction.setTransactionDate(ZonedDateTime.now());
 
         List<TransactionDetail> details = games.stream().map(game -> {
             TransactionDetail detail = new TransactionDetail();
@@ -119,8 +126,11 @@ public class AdminTransactionServiceImpl implements AdminTransactionService {
             detail.setPrice(game.getPrice());
             return detail;
         }).collect(Collectors.toList());
+
         transaction.setDetails(details);
-        // totalPrice and transactionDate set by @PrePersist
+
+        double total = details.stream().mapToDouble(TransactionDetail::getPrice).sum();
+        transaction.setTotalPrice(total);
 
         Transaction saved = transactionRepository.save(transaction);
         return TransactionMapper.toDTO(saved);
