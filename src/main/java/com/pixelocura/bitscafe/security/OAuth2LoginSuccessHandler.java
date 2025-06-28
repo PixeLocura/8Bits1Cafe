@@ -131,7 +131,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                         userPrincipal.getAuthorities()));
         System.out.println("[OAuth2LoginSuccessHandler] JWT generated: " + jwt);
         // Redirect to frontend with JWT
-        String redirectUrl = "http://localhost:4200/login-success?token=" + jwt;
+        String frontendUrl = System.getenv("FRONTEND_URL");
+        String redirectUrl;
+        if (frontendUrl != null && !frontendUrl.isBlank()) {
+            frontendUrl = frontendUrl.replaceAll("/+$", ""); // Remove trailing slash if present
+            redirectUrl = frontendUrl + "/login-success?token=" + jwt;
+        } else {
+            redirectUrl = "http://localhost:4200/login-success?token=" + jwt; // fallback to localhost
+        }
         System.out.println("[OAuth2LoginSuccessHandler] Redirecting to: " + redirectUrl);
         response.sendRedirect(redirectUrl);
     }
