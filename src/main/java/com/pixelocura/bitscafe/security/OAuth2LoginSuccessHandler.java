@@ -12,6 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -31,22 +32,39 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
         OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
-        OidcUser oidcUser = (OidcUser) oauthToken.getPrincipal();
-        // Print all OIDC attributes in pretty JSON for debug/analysis
-        try {
-            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-            String prettyJson = mapper.writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(oidcUser.getAttributes());
-            System.out.println("[OAuth2LoginSuccessHandler] OIDC attributes (pretty JSON):\n" + prettyJson);
-        } catch (Exception e) {
-            System.out.println("[OAuth2LoginSuccessHandler] Failed to pretty-print OIDC attributes: " + e);
+        Object principal = oauthToken.getPrincipal();
+        final String email;
+        final String name;
+        if (principal instanceof OidcUser oidcUser) {
+            // Google OIDC
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+                String prettyJson = mapper.writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(oidcUser.getAttributes());
+                System.out.println("[OAuth2LoginSuccessHandler] OIDC attributes (pretty JSON):\n" + prettyJson);
+            } catch (Exception e) {
+                System.out.println("[OAuth2LoginSuccessHandler] Failed to pretty-print OIDC attributes: " + e);
+            }
+            email = oidcUser.getEmail();
+            name = oidcUser.getFullName();
+        } else if (principal instanceof DefaultOAuth2User discordUser) {
+            // Discord
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                String prettyJson = mapper.writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(discordUser.getAttributes());
+                System.out.println("[OAuth2LoginSuccessHandler] Discord attributes (pretty JSON):\n" + prettyJson);
+            } catch (Exception e) {
+                System.out.println("[OAuth2LoginSuccessHandler] Failed to pretty-print Discord attributes: " + e);
+            }
+            email = (String) discordUser.getAttribute("email");
+            name = (String) discordUser.getAttribute("username");
+        } else {
+            throw new IllegalStateException("Unknown OAuth2 principal type: " + principal.getClass());
         }
-        String email = oidcUser.getEmail();
-        String name = oidcUser.getFullName();
-
         System.out.println("[OAuth2LoginSuccessHandler] OAuth2 login attempt for email: " + email);
-        System.out.println("[OAuth2LoginSuccessHandler] OIDC name: " + name);
+        System.out.println("[OAuth2LoginSuccessHandler] Name: " + name);
         // Find or create user
         Optional<User> userOpt = userRepository.findByEmail(email);
         System.out.println("[OAuth2LoginSuccessHandler] User found in DB: " + userOpt.isPresent());
@@ -83,16 +101,16 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         System.out.println("[OAuth2LoginSuccessHandler] Using user ID: " + user.getId());
         System.out.println("[OAuth2LoginSuccessHandler] User entity: " + user);
         // Create a UserPrincipal for JWT
-        UserPrincipal principal = new UserPrincipal();
-        principal.setId(user.getId());
-        principal.setEmail(user.getEmail());
-        principal.setUser(user);
-        principal.setAuthorities(getAuthoritiesForUser(user));
-        System.out.println("[OAuth2LoginSuccessHandler] UserPrincipal created for JWT: " + principal);
+        UserPrincipal userPrincipal = new UserPrincipal();
+        userPrincipal.setId(user.getId());
+        userPrincipal.setEmail(user.getEmail());
+        userPrincipal.setUser(user);
+        userPrincipal.setAuthorities(getAuthoritiesForUser(user));
+        System.out.println("[OAuth2LoginSuccessHandler] UserPrincipal created for JWT: " + userPrincipal);
         // Generate JWT
         String jwt = tokenProvider.createAccessToken(
-                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(principal, null,
-                        principal.getAuthorities()));
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(userPrincipal, null,
+                        userPrincipal.getAuthorities()));
         System.out.println("[OAuth2LoginSuccessHandler] JWT generated: " + jwt);
         // Redirect to frontend with JWT
         String redirectUrl = "http://localhost:4200/login-success?token=" + jwt;

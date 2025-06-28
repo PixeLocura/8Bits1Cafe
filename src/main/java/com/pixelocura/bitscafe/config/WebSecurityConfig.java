@@ -6,6 +6,7 @@ import com.pixelocura.bitscafe.security.JwtAuthenticationEntryPoint;
 import com.pixelocura.bitscafe.security.OAuth2LoginSuccessHandler;
 import com.pixelocura.bitscafe.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
+import com.pixelocura.bitscafe.security.CustomDiscordOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +28,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
+import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.http.HttpHeaders;
 
 @Configuration
 @RequiredArgsConstructor
@@ -41,6 +48,25 @@ public class WebSecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> discordAccessTokenResponseClient() {
+        RestClientAuthorizationCodeTokenResponseClient client = new RestClientAuthorizationCodeTokenResponseClient();
+        client.addHeadersConverter(grantRequest -> {
+            if ("discord".equals(grantRequest.getClientRegistration().getRegistrationId())) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.set(HttpHeaders.USER_AGENT, "8Bits1Cafe/1.0");
+                return headers;
+            }
+            return new HttpHeaders();
+        });
+        return client;
+    }
+
+    @Bean
+    public OAuth2UserService<org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest, OAuth2User> discordOAuth2UserService() {
+        return new CustomDiscordOAuth2UserService();
     }
 
     @Bean
@@ -62,7 +88,11 @@ public class WebSecurityConfig {
                 .sessionManagement(h -> h.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .with(new JWTConfigurer(tokenProvider), Customizer.withDefaults())
                 .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2LoginSuccessHandler));
+                        .successHandler(oAuth2LoginSuccessHandler)
+                        .tokenEndpoint(token -> token
+                                .accessTokenResponseClient(discordAccessTokenResponseClient()))
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(discordOAuth2UserService())));
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

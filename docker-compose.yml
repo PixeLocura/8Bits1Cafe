@@ -44,7 +44,8 @@ services:
             BITSCAFE_OPENAPI_PROD_URL: ${BITSCAFE_OPENAPI_PROD_URL:-https://eightbits1cafe.onrender.com/api/v1/}
             GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
             GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-
+            DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+            DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
 
 volumes:
     db-data:
