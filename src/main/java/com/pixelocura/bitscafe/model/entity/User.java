@@ -49,7 +49,7 @@ public class User {
     private Developer developerProfile;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="role_id", referencedColumnName = "id", foreignKey = @ForeignKey(name="fk_user_role"))
+    @JoinColumn(name = "role_id", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_user_role"))
     private Role role;
 
     @Column(name = "registration_date", nullable = false)
@@ -70,5 +70,17 @@ public class User {
 
     public ERole getRoleName() {
         return role != null ? role.getName() : null;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                // Avoid recursion: only print developerProfile id
+                ", developerProfileId=" + (developerProfile != null ? developerProfile.getId() : null) +
+                ", role=" + (role != null ? role.getName() : null) +
+                '}';
     }
 }
