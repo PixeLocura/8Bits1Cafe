@@ -2,19 +2,15 @@ package com.pixelocura.bitscafe.service;
 
 import com.pixelocura.bitscafe.dto.TransactionDTO;
 import com.pixelocura.bitscafe.dto.TransactionDetailDTO;
-import com.pixelocura.bitscafe.mapper.TransactionMapper;
 import com.pixelocura.bitscafe.model.entity.Game;
 import com.pixelocura.bitscafe.model.entity.Transaction;
-import com.pixelocura.bitscafe.model.entity.TransactionDetail;
 import com.pixelocura.bitscafe.model.entity.User;
 import com.pixelocura.bitscafe.repository.GameRepository;
-import com.pixelocura.bitscafe.repository.TransactionDetailRepository;
 import com.pixelocura.bitscafe.repository.TransactionRepository;
 import com.pixelocura.bitscafe.repository.UserRepository;
 import com.pixelocura.bitscafe.service.impl.AdminTransactionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +22,6 @@ import static org.mockito.Mockito.*;
 class AdminTransactionServiceImplTest {
 
     private TransactionRepository transactionRepository;
-    private TransactionDetailRepository transactionDetailRepository;
     private UserRepository userRepository;
     private GameRepository gameRepository;
     private AdminTransactionServiceImpl transactionService;
@@ -34,15 +29,14 @@ class AdminTransactionServiceImplTest {
     @BeforeEach
     void setUp() {
         transactionRepository = mock(TransactionRepository.class);
-        transactionDetailRepository = mock(TransactionDetailRepository.class);
         userRepository = mock(UserRepository.class);
         gameRepository = mock(GameRepository.class);
 
+        // CONSTRUCTOR FINAL AJUSTADO: ya NO usa TransactionDetailRepository
         transactionService = new AdminTransactionServiceImpl(
                 transactionRepository,
-                transactionDetailRepository,
-                userRepository,
-                gameRepository
+                gameRepository,
+                userRepository
         );
     }
 
