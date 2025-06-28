@@ -78,10 +78,10 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             System.out
                     .println("[OAuth2LoginSuccessHandler] Username candidate before validation: " + usernameCandidate);
             newUser.setUsername(usernameCandidate);
-            // Lastname: set to null (Google doesn't provide it)
-            newUser.setLastname(null);
+            // Lastname: set to empty string if not provided (DB requires NOT NULL)
+            newUser.setLastname("");
             System.out.println("[OAuth2LoginSuccessHandler] Final username: " + usernameCandidate);
-            System.out.println("[OAuth2LoginSuccessHandler] Final lastname: null");
+            System.out.println("[OAuth2LoginSuccessHandler] Final lastname: '' (empty string)");
             newUser.setPasswordHash(null);
             newUser.setCountry(com.pixelocura.bitscafe.model.enums.Country.PE);
             System.out.println(
