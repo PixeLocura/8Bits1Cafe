@@ -49,4 +49,14 @@ public class Developer {
     public void preUpdate() {
         this.updateDate = ZonedDateTime.now(ZoneOffset.UTC);
     }
+
+    @Override
+    public String toString() {
+        return "Developer{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                // Avoid recursion: only print user id
+                ", userId=" + (user != null ? user.getId() : null) +
+                '}';
+    }
 }

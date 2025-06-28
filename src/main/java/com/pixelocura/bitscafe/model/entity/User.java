@@ -25,15 +25,14 @@ public class User {
     @Column(nullable = false)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "password_hash", nullable = true)
     private String passwordHash;
 
     @Size(min = 2, max = 50)
     @Column(nullable = false)
     private String name;
 
-    @Size(min = 2, max = 50)
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String lastname;
 
     @Size(min = 3, max = 30)
@@ -50,7 +49,7 @@ public class User {
     private Developer developerProfile;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="role_id", referencedColumnName = "id", foreignKey = @ForeignKey(name="fk_user_role"))
+    @JoinColumn(name = "role_id", referencedColumnName = "id", foreignKey = @ForeignKey(name = "fk_user_role"))
     private Role role;
 
     @Column(name = "registration_date", nullable = false)
@@ -71,5 +70,17 @@ public class User {
 
     public ERole getRoleName() {
         return role != null ? role.getName() : null;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                // Avoid recursion: only print developerProfile id
+                ", developerProfileId=" + (developerProfile != null ? developerProfile.getId() : null) +
+                ", role=" + (role != null ? role.getName() : null) +
+                '}';
     }
 }
