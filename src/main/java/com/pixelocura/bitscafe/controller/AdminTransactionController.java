@@ -25,7 +25,7 @@ public class AdminTransactionController {
     private final AdminTransactionService adminTransactionService;
 
     public AdminTransactionController(AdminTransactionService transactionService) {
-        this.adminTransactionService = transactionService;
+        this.adminTransactionService=transactionService;
     }
 
     @Operation(summary = "Listar transacciones por usuario", description = "Devuelve una lista de transacciones realizadas por un usuario específico.")

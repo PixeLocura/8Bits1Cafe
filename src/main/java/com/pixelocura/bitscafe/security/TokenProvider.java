@@ -50,7 +50,10 @@ public class TokenProvider {
                 .findFirst()
                 .orElseThrow(RoleNotFoundException::new)
                 .getAuthority();
-
+        // Ensure role is prefixed with 'ROLE_' for Spring Security compatibility
+        if (!role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
+        }
         JwtBuilder jwtBuilder = Jwts
                 .builder()
                 .setSubject(user.getEmail())
@@ -78,6 +81,10 @@ public class TokenProvider {
         Claims claims = jwtParser.parseClaimsJws(token).getBody();
 
         String role = claims.get("role").toString();
+        // Ensure authority is in 'ROLE_' format for Spring Security
+        if (!role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
+        }
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
 
         // Create UserPrincipal with information from token

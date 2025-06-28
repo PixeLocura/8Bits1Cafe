@@ -3,8 +3,10 @@ package com.pixelocura.bitscafe.config;
 import com.pixelocura.bitscafe.security.JWTConfigurer;
 import com.pixelocura.bitscafe.security.JWTFilter;
 import com.pixelocura.bitscafe.security.JwtAuthenticationEntryPoint;
+import com.pixelocura.bitscafe.security.OAuth2LoginSuccessHandler;
 import com.pixelocura.bitscafe.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
+import com.pixelocura.bitscafe.security.CustomDiscordOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +28,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
 import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
+import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.http.HttpHeaders;
 
 @Configuration
 @RequiredArgsConstructor
@@ -35,6 +43,7 @@ public class WebSecurityConfig {
     private final TokenProvider tokenProvider;
     private final JWTFilter jwtRequestFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -42,14 +51,30 @@ public class WebSecurityConfig {
     }
 
     @Bean
+    public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> discordAccessTokenResponseClient() {
+        RestClientAuthorizationCodeTokenResponseClient client = new RestClientAuthorizationCodeTokenResponseClient();
+        client.addHeadersConverter(grantRequest -> {
+            if ("discord".equals(grantRequest.getClientRegistration().getRegistrationId())) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.set(HttpHeaders.USER_AGENT, "8Bits1Cafe/1.0");
+                return headers;
+            }
+            return new HttpHeaders();
+        });
+        return client;
+    }
+
+    @Bean
+    public OAuth2UserService<org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest, OAuth2User> discordOAuth2UserService() {
+        return new CustomDiscordOAuth2UserService();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
-        http.cors(Customizer.withDefaults()) // TODO: Permite solicitudes CORS desde otros dominios
-                .csrf(AbstractHttpConfigurer::disable) // TODO: Desactiva la protección CSRF, ya que en APIs REST no se
-                                                       // usa (se autentica con tokens, no con cookies)
+        http.cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        // TODO: Permitir acceso público a las rutas de login, registro y endpoints
-                        // públicos como Swagger UI
                         .requestMatchers(antMatcher("/auth/login")).permitAll()
                         .requestMatchers(antMatcher("/auth/register/developer")).permitAll()
                         .requestMatchers(antMatcher("/auth/register/admin")).permitAll()
@@ -57,26 +82,17 @@ public class WebSecurityConfig {
                                 "/swagger-ui/**", "/webjars/**")
                         .permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/developers/**").permitAll()
-                        // TODO: Cualquier otra solicitud requiere autenticación (JWT u otra
-                        // autenticación configurada)
                         .anyRequest().authenticated())
-                // TODO: Permite la autenticación básica (para testing con Postman, por ejemplo)
-                // .httpBasic(Customizer.withDefaults())
-                // TODO: Desactiva el formulario de inicio de sesión predeterminado, ya que se
-                // usará JWT
                 .formLogin(AbstractHttpConfigurer::disable)
-                // TODO: Configura el manejo de excepciones para autenticación. Usa
-                // JwtAuthenticationEntryPoint para manejar errores 401 (no autorizado)
                 .exceptionHandling(e -> e.authenticationEntryPoint(jwtAuthenticationEntryPoint))
-                // TODO: Configura la política de sesiones como "sin estado" (stateless), ya que
-                // JWT maneja la autenticación, no las sesiones de servidor
                 .sessionManagement(h -> h.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // TODO: Agrega la configuración para JWT en el filtro antes de los filtros
-                // predeterminados de Spring Security
-                .with(new JWTConfigurer(tokenProvider), Customizer.withDefaults());
-        // TODO: Añadir el JWTFilter antes del filtro de autenticación de nombre de
-        // usuario/contraseña.
-        // Esto permite que el JWTFilter valide el token antes de la autenticación
+                .with(new JWTConfigurer(tokenProvider), Customizer.withDefaults())
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2LoginSuccessHandler)
+                        .tokenEndpoint(token -> token
+                                .accessTokenResponseClient(discordAccessTokenResponseClient()))
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(discordOAuth2UserService())));
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

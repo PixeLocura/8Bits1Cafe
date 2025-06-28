@@ -21,10 +21,11 @@ public class UserMapper {
 
         if (user.getDeveloperProfile() != null) {
             dto.setDeveloperProfileId(user.getDeveloperProfile().getId());
-            dto.setName(user.getDeveloperProfile().getName());
         } else {
-            dto.setName(user.getName()); // fallback si no hay developerProfile
+            dto.setDeveloperProfileId(null);
         }
+        // Always set user's name
+        dto.setName(user.getName());
 
         if (user.getRole() != null) {
             dto.setRole(user.getRole().getName());
