@@ -35,6 +35,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         Object principal = oauthToken.getPrincipal();
         final String email;
         final String name;
+        final String usernameCandidate;
+        final String lastnameValue;
         if (principal instanceof OidcUser oidcUser) {
             // Google OIDC
             try {
@@ -48,6 +50,8 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             }
             email = oidcUser.getEmail();
             name = oidcUser.getFullName();
+            usernameCandidate = email != null ? email.split("@")[0].replaceAll("[^a-zA-Z0-9_-]", "") : "user";
+            lastnameValue = "";
         } else if (principal instanceof DefaultOAuth2User discordUser) {
             // Discord
             try {
@@ -59,7 +63,23 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 System.out.println("[OAuth2LoginSuccessHandler] Failed to pretty-print Discord attributes: " + e);
             }
             email = (String) discordUser.getAttribute("email");
-            name = (String) discordUser.getAttribute("username");
+            String discordUsername = (String) discordUser.getAttribute("username");
+            Object globalNameObj = discordUser.getAttribute("global_name");
+            String globalName = globalNameObj != null ? globalNameObj.toString() : null;
+            if (globalName != null && !globalName.isBlank()) {
+                String[] parts = globalName.trim().split("\\s+");
+                if (parts.length == 1) {
+                    name = parts[0];
+                    lastnameValue = "";
+                } else {
+                    name = parts[0];
+                    lastnameValue = String.join(" ", java.util.Arrays.copyOfRange(parts, 1, parts.length));
+                }
+            } else {
+                name = discordUsername;
+                lastnameValue = "";
+            }
+            usernameCandidate = discordUsername;
         } else {
             throw new IllegalStateException("Unknown OAuth2 principal type: " + principal.getClass());
         }
@@ -72,17 +92,15 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             System.out.println("[OAuth2LoginSuccessHandler] Creating new user for email: " + email);
             User newUser = new User();
             newUser.setEmail(email);
-            newUser.setName(name);
-            // Username: use part before @ and remove invalid chars
-            String usernameCandidate = email != null ? email.split("@")[0].replaceAll("[^a-zA-Z0-9_-]", "") : "user";
-            System.out
-                    .println("[OAuth2LoginSuccessHandler] Username candidate before validation: " + usernameCandidate);
             newUser.setUsername(usernameCandidate);
+            newUser.setName(name);
+            newUser.setLastname(lastnameValue);
             // Lastname: set to empty string if not provided (DB requires NOT NULL)
             newUser.setLastname("");
             System.out.println("[OAuth2LoginSuccessHandler] Final username: " + usernameCandidate);
             System.out.println("[OAuth2LoginSuccessHandler] Final lastname: '' (empty string)");
-            newUser.setPasswordHash(null);
+            // Password hash: set to empty string for OAuth2 users (DB requires NOT NULL)
+            newUser.setPasswordHash("");
             newUser.setCountry(com.pixelocura.bitscafe.model.enums.Country.PE);
             System.out.println(
                     "[OAuth2LoginSuccessHandler] Set country to: " + com.pixelocura.bitscafe.model.enums.Country.PE);
