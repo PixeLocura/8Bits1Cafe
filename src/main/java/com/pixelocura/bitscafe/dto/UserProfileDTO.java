@@ -13,5 +13,6 @@ public class UserProfileDTO {
     private ERole role; // El Rol puede ser Customer u otro
     // User - Attributes -------
     private String email;
+    private String profilePictureUrl;
 }
 

@@ -83,4 +83,8 @@ public class User {
                 ", role=" + (role != null ? role.getName() : null) +
                 '}';
     }
+
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
 }

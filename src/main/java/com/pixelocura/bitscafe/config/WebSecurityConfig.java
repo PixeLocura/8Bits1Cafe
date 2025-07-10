@@ -96,8 +96,9 @@ public class WebSecurityConfig {
                     "/swagger-ui/**",
                     "/webjars/**"
                 ).permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/developers/**").permitAll()
-                .requestMatchers("/users").hasRole("ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/developers/**").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/games/**").permitAll()
+                    .requestMatchers("/users").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(AbstractHttpConfigurer::disable) // explicitly disable form login

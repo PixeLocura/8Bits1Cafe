@@ -41,4 +41,8 @@ public class UserDTO {
     private UUID developerProfileId;
 
     private ZonedDateTime registrationDate;
+
+    //  Nuevo campo
+    private String profilePictureUrl;
 }
+

@@ -1,6 +1,8 @@
 package com.pixelocura.bitscafe.controller;
 
 import com.pixelocura.bitscafe.dto.UserProfileDTO;
+import com.pixelocura.bitscafe.dto.ProfilePictureDTO;
+
 import com.pixelocura.bitscafe.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,4 +33,16 @@ public class UserProfileController {
         UserProfileDTO profile = userService.getUserProfileById(id);
         return new ResponseEntity<>(profile, HttpStatus.OK);
     }
+
+    @PatchMapping("/{id}/profile-picture")
+    @PreAuthorize("hasAnyRole('ADMIN', 'DEVELOPER') or @userSecurity.isCurrentUser(#id)")
+    public ResponseEntity<UserProfileDTO> updateProfilePicture(
+            @PathVariable UUID id,
+            @RequestBody ProfilePictureDTO profilePictureDTO) {
+
+        UserProfileDTO updated = userService.updateProfilePicture(id, profilePictureDTO);
+        return ResponseEntity.ok(updated);
+    }
+
+
 }

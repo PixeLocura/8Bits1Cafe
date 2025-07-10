@@ -100,6 +100,17 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserProfileDTO(userEntity);
     }
 
+    @Override
+    public UserProfileDTO updateProfilePicture(UUID id, ProfilePictureDTO dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        user.setProfilePictureUrl(dto.getProfilePictureUrl());
+        userRepository.save(user);
+
+        return userMapper.toUserProfileDTO(user);
+    }
+
 
     @Override
     public UserProfileDTO updateUserProfile(UUID id, UserProfileDTO dto) {

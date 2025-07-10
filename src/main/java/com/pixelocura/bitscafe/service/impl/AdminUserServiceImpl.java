@@ -44,21 +44,28 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Override
     @Transactional
     public UserDTO create(UserDTO userDTO) {
-        // Check for duplicate username
+        // Verifica duplicados
         userRepository.findByUsername(userDTO.getUsername())
                 .ifPresent(user -> {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "User already exists with username: " + userDTO.getUsername());
+                            "User already exists with username: " + userDTO.getUsername());
                 });
 
         userRepository.findByEmail(userDTO.getEmail())
                 .ifPresent(user -> {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "User already exists with email: " + userDTO.getEmail());
+                            "User already exists with email: " + userDTO.getEmail());
                 });
 
         User user = userMapper.toEntity(userDTO);
 
+        // Aquí agregas la URL de perfil por defecto si no hay una
+        if (user.getProfilePictureUrl() == null || user.getProfilePictureUrl().isBlank()) {
+            String robohashUrl = "https://robohash.org/" + user.getUsername() + ".png";
+            user.setProfilePictureUrl(robohashUrl);
+        }
+
+        // Asignar rol si corresponde
         if (userDTO.getRole() != null) {
             Role roleEntity = roleRepository.findByName(userDTO.getRole())
                     .orElseThrow(() -> new RuntimeException("Rol no encontrado: " + userDTO.getRole()));
@@ -68,6 +75,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         User savedUser = userRepository.save(user);
         return userMapper.toDTO(savedUser);
     }
+
 
     @Override
     @Transactional(readOnly = true)

@@ -24,7 +24,10 @@ public class UserMapper {
         } else {
             dto.setDeveloperProfileId(null);
         }
-        // Always set user's name
+
+        // Asegúrate de incluir el campo:
+        dto.setProfilePictureUrl(user.getProfilePictureUrl());
+
         dto.setName(user.getName());
 
         if (user.getRole() != null) {
@@ -34,15 +37,19 @@ public class UserMapper {
     }
 
 
+
     public User toEntity(UserDTO userDTO) {
         User user = new User();
 
         user.setEmail(userDTO.getEmail());
-        user.setPasswordHash(userDTO.getPassword());  //
+        user.setPasswordHash(userDTO.getPassword());
         user.setName(userDTO.getName());
         user.setLastname(userDTO.getLastname());
         user.setUsername(userDTO.getUsername());
         user.setCountry(userDTO.getCountry());
+
+        // Nuevo: foto
+        user.setProfilePictureUrl(userDTO.getProfilePictureUrl());
 
         if (userDTO.getDeveloperProfileId() != null) {
             Developer developer = developerRepository.findById(userDTO.getDeveloperProfileId())
@@ -55,12 +62,9 @@ public class UserMapper {
 
 
     public void updateEntity(UserDTO userDTO, User user) {
-        // Store values that should not be overwritten by ModelMapper
         String existingPasswordHash = user.getPasswordHash();
-
         user.setDeveloperProfile(null);
 
-        // Get or create type map with developer profile skipped and skipNullEnabled
         var typeMap = modelMapper.getTypeMap(UserDTO.class, User.class);
         if (typeMap == null) {
             typeMap = modelMapper.createTypeMap(UserDTO.class, User.class);
@@ -68,22 +72,27 @@ public class UserMapper {
         }
         typeMap.setPropertyCondition(context -> context.getSource() != null);
 
-
-        // Map userDTO to user, skipping developer profile
         modelMapper.map(userDTO, user);
 
-        // Handle password - temporarily use plain password as hash
         if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
             user.setPasswordHash(userDTO.getPassword());
         } else {
             user.setPasswordHash(existingPasswordHash);
         }
+
+        // Nuevo: foto
+        if (userDTO.getProfilePictureUrl() != null) {
+            user.setProfilePictureUrl(userDTO.getProfilePictureUrl());
+        }
     }
+
 
     public UserProfileDTO toUserProfileDTO(User user) {
         UserProfileDTO dto = new UserProfileDTO();
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());
+
+        dto.setProfilePictureUrl(user.getProfilePictureUrl()); // 🚩 Aquí
 
         if (user != null && user.getRoleName() != null) {
             dto.setRole(user.getRoleName());
@@ -92,11 +101,12 @@ public class UserMapper {
         if (user.getDeveloperProfile() != null) {
             dto.setName(user.getDeveloperProfile().getName());
         } else {
-            dto.setName(user.getName()); // fallback si no hay developerProfile
+            dto.setName(user.getName());
         }
 
         return dto;
     }
+
 
 
     public UserDTO fromRegistrationDTO(UserRegistrationDTO registrationDTO) {
