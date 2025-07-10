@@ -97,7 +97,7 @@ public class AdminDeveloperController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasRole('DEVELOPER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DEVELOPER')")
     @Operation(summary = "Create developer profile", description = "Creates a developer profile for the authenticated user, including a profile picture URL.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Developer profile created successfully", content = @Content(schema = @Schema(implementation = DeveloperDTO.class), mediaType = "application/json")),
@@ -111,7 +111,7 @@ public class AdminDeveloperController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProfile);
     }
 
-    @PreAuthorize("hasRole('DEVELOPER')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('DEVELOPER')")
     @Operation(summary = "Verificar perfil de desarrollador", description = "Verifica si el usuario autenticado tiene un perfil de desarrollador y devuelve su ID si existe.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "El usuario tiene un perfil de desarrollador", content = @Content(schema = @Schema(implementation = String.class), mediaType = "application/json")),
