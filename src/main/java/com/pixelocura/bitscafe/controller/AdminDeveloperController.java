@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
+import java.util.Map;
+import java.util.HashMap;
+import org.springframework.http.MediaType;
 
 @Tag(name = "Developers", description = "API de Gestión de Desarrolladores")
 @RequiredArgsConstructor
@@ -118,12 +121,20 @@ public class AdminDeveloperController {
             @ApiResponse(responseCode = "404", description = "El usuario no tiene un perfil de desarrollador", content = @Content)
     })
     @GetMapping("/me/exists")
-    public ResponseEntity<String> hasDeveloperProfile(@AuthenticationPrincipal UserPrincipal userDetails) {
+    public ResponseEntity<Map<String, Object>> hasDeveloperProfile(@AuthenticationPrincipal UserPrincipal userDetails) {
         UUID developerId = adminDeveloperService.getDeveloperProfileId(userDetails.getId());
+        Map<String, Object> response = new HashMap<>();
         if (developerId != null) {
-            return ResponseEntity.ok(developerId.toString());
+            response.put("exists", true);
+            response.put("developerId", developerId.toString());
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            response.put("exists", false);
+            response.put("developerId", null);
         }
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
     }
+
+
+
+
 }
